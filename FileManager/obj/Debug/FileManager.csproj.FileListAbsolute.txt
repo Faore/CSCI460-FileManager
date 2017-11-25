@@ -1,6 +1,0 @@
-C:\Users\cthomas\RiderProjects\FileManager\FileManager\bin\Debug\FileManager.exe
-C:\Users\cthomas\RiderProjects\FileManager\FileManager\bin\Debug\FileManager.pdb
-C:\Users\cthomas\RiderProjects\FileManager\FileManager\obj\Debug\FileManager.csprojResolveAssemblyReference.cache
-C:\Users\cthomas\RiderProjects\FileManager\FileManager\obj\Debug\FileManager.csproj.CoreCompileInputs.cache
-C:\Users\cthomas\RiderProjects\FileManager\FileManager\obj\Debug\FileManager.exe
-C:\Users\cthomas\RiderProjects\FileManager\FileManager\obj\Debug\FileManager.pdb
