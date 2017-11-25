@@ -29,14 +29,16 @@ namespace FileManager
             }
             Console.WriteLine();
 
-            if (write == disk.ReadBlock(0))
+            var read = disk.ReadBlock(0);
+            for (int i = 0; i < 1024; i++)
             {
-                Console.WriteLine("They match!");
+                if (read[i] != write[i])
+                {
+                    Console.WriteLine("Mismatch");
+                    return;
+                }                
             }
-            else
-            {
-                Console.WriteLine("They match!");
-            }
+            Console.WriteLine("Match");
         }
     }
 }
