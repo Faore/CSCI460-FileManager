@@ -22,6 +22,11 @@ namespace FileManager
 
         public void startConsole()
         {
+            //Simpler than it looks. Forever display the current path and expect a command.
+            //A command name is mapped to the dictionary above. If it matches, run it. If it returns false, break the loop and exit.
+            //It uses some magic to store pointers to functions in the dictionary to avoid those nasty switch statements.
+            //Add new commands by adding any function to the commands dictionary above.
+            //The function must be public, return a bool, and take in a string[] with the arguments.
             Console.WriteLine("FileManager Console Started With FileSystem.");
             while (true)
             {
@@ -55,7 +60,7 @@ namespace FileManager
             return false;
         }
 
-        //I didn't feel like parsing out arguments to commands myslef on the command line. So I used some black magic.
+        //I didn't feel like parsing out arguments to commands myself on the command line. So I used some black magic.
         //This uses the Windows API that parses commands in Windows to create the arguments for a program. Guaranteed to work beautifully.
         //Unfortunately does not work on Linux since it relies on the Windows shell being present.
         [DllImport("shell32.dll", SetLastError = true)]
