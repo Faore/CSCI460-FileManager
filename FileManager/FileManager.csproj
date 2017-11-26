@@ -49,7 +49,6 @@
     <Compile Include="src\FileSystem.cs" />
     <Compile Include="src\Program.cs" />
     <Compile Include="src\VirtualDisk.cs" />
-    <Compile Include="test\TestVirtualDisk.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
