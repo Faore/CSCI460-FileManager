@@ -32,7 +32,7 @@ namespace FileManager
             Rows.Remove(row);
         }
         
-        public void createFromBytes(byte[] data)//return type will be DirectoryTable
+        public static DirectoryTable createFromBytes(byte[] data)//return type will be DirectoryTable
         {
             DirectoryTable table = new DirectoryTable();
             for (int i = 0; i < 32; i++)
@@ -47,8 +47,8 @@ namespace FileManager
                 {
                     table.InsertRow(row);                    
                 } 
-                
             }
+            return table;
         }
 
         public byte[] toBytes()
