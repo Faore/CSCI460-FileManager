@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 
 namespace FileManager
 {
@@ -9,8 +10,25 @@ namespace FileManager
             
         }
 
-        public void getDirectoryContents()
+        public void getDirectoryContents(string path)
         {
+            string[] p1 = path.Split('/');
+            DirectoryTable current = getRoot();
+            DirectoryTable last = current;
+            for (int i = 1; i < p1.Length; i++)
+            {
+                for (int j = 0; j < current.Rows.Count; j++)
+                {
+                    if (((DirectoryRow)current.Rows[j]).getString() == p1[i])
+                    {
+                        current = (DirectoryTable)current.Rows[j];
+                    }
+                }
+                if (last == current)
+                {
+                    throw new Exception("Path not found, ");
+                }
+            }
             
         }
 
