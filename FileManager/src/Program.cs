@@ -8,7 +8,7 @@ namespace FileManager
     {
         public static void Main(string[] args)
         {
-            var fileManager = new FileManager(new FileSystem());
+            var fileManager = new FileManager(new FileSystem(new VirtualDisk()));
             fileManager.startConsole();
 
             //Example Test

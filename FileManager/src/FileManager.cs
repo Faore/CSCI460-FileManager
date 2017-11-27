@@ -53,6 +53,11 @@ namespace FileManager
             if (args.Length == 1)
             {
                 //There were no arguments provided.
+                Console.WriteLine(parseDirectory(FileSystem.getDirectoryContents(CurrentPath)));
+                return true;
+            }
+            else
+            {
                 
             }
             return true;
