@@ -6,11 +6,11 @@ namespace FileManager
     public class DirectoryTable
     {
         private byte[] BlockData;
-        private readonly ArrayList Rows = new ArrayList();
+        private readonly ArrayList Rows;
 
         public DirectoryTable()
         {
-            
+            Rows = new ArrayList();
         }
 
         public DirectoryRow GetRow(byte i)
