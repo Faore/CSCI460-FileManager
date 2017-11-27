@@ -53,5 +53,11 @@
             {
                
             }
+
+            public string getString()
+            {
+                //Return the string without any null characters.
+                return name.ToString().Replace("\0", string.Empty);
+            }
         }
     }

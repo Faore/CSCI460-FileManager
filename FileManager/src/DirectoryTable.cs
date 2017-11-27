@@ -34,7 +34,21 @@ namespace FileManager
         
         public void createFromBytes(byte[] data)//return type will be DirectoryTable
         {
-            
+            DirectoryTable table = new DirectoryTable();
+            for (int i = 0; i < 32; i++)
+            {
+                byte[] bytes = new byte[64];
+                for (int j = 0; j < 64; j++)
+                {
+                    bytes[j] = data[i * 64 + j];
+                }
+                DirectoryRow row = DirectoryRow.createFromBytes(bytes);
+                if (row.name != string.Empty && row.name != null)
+                {
+                    table.InsertRow(row);                    
+                } 
+                
+            }
         }
 
         public byte[] toBytes()
