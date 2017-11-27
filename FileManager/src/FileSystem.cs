@@ -27,14 +27,20 @@ namespace FileManager
             {
                 for (int j = 0; j < current.Rows.Count; j++)
                 {
-                    if (((DirectoryRow)current.Rows[j]).getString() == p1[i])
+                    if ((current.Rows[j]).getString() == p1[i])
                     {
-                        current = (DirectoryTable)current.Rows[j];
+                        current = current.Rows[j].blockStart;
                     }
                 }
                 if (last == current)
                 {
-                    throw new Exception("Path not found, ");
+                    string p2 = "";
+                    for (int k = 1; k <= i; k++)
+                    {
+                        p2 += "/";
+                        p2 += p1[k];
+                    }
+                    throw new Exception($"Path not found, {p2} does not exist");
                 }
             }
             
