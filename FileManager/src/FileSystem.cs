@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 
@@ -13,12 +14,12 @@ namespace FileManager
             Disk = disk;
         }
         
-        public void getRoot()
+        public DirectoryTable getRoot()
         {
-            
+            return parseTableAtBlock(0);
         }
 
-        public void getDirectoryContents(string path)
+        public DirectoryTable getDirectoryContents(string path)
         {
             string[] p1 = path.Split('/');
             DirectoryTable current = getRoot();
@@ -29,7 +30,7 @@ namespace FileManager
                 {
                     if ((current.Rows[j]).getString() == p1[i])
                     {
-                        current = current.Rows[j].blockStart;
+                        current = parseTableAtBlock(current.Rows[j].blockStart);
                     }
                 }
                 if (last == current)
@@ -42,8 +43,9 @@ namespace FileManager
                     }
                     throw new Exception($"Path not found, {p2} does not exist");
                 }
+                last = current;
             }
-            
+            return current;
         }
 
         public void getFile()
