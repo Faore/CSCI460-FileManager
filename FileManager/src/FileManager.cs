@@ -50,7 +50,11 @@ namespace FileManager
 
         public bool CommandLS(string[] args)
         {
-            Console.WriteLine("LS command not implemented.");
+            if (args.Length == 1)
+            {
+                //There were no arguments provided.
+                
+            }
             return true;
         }
 
@@ -58,6 +62,11 @@ namespace FileManager
         {
             Console.WriteLine("Goodbye.");
             return false;
+        }
+
+        public string parseDirectory(DirectoryTable table)
+        {
+            return String.Empty;
         }
 
         //I didn't feel like parsing out arguments to commands myself on the command line. So I used some black magic.

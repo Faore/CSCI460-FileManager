@@ -9,7 +9,12 @@ namespace FileManager
             public ushort blockStart;
             public ushort size;
             public ushort next;
-    
+
+            public bool isFile
+            {
+                get { return size != 0; }
+            }
+
             public DirectoryRow(string n, ushort b, ushort s, ushort x)
             {
                 if(n.Length >58)

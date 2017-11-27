@@ -1,23 +1,24 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace FileManager
 {
     public class DirectoryTable
     {
         private byte[] BlockData;
-        private readonly ArrayList Rows;
+        public readonly List<DirectoryRow> Rows;
 
         public DirectoryTable()
         {
-            Rows = new ArrayList();
+            Rows = new List<DirectoryRow>();
         }
 
         public DirectoryRow GetRow(byte i)
         {
-            return (DirectoryRow) Rows[i];
+            return Rows[i];
         }
-
+    
         public void InsertRow(DirectoryRow row)
         {
             if (Rows.Count == 32)
