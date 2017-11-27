@@ -5,10 +5,10 @@ namespace FileManager
     {
         public class DirectoryRow
         {
-            char[] name;
-            private ushort blockStart;
-            private ushort size;
-            private ushort next;
+            public char[] name;
+            public ushort blockStart;
+            public ushort size;
+            public ushort next;
     
             public DirectoryRow(string n, ushort b, ushort s, ushort x)
             {
