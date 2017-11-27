@@ -1,10 +1,18 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 
 namespace FileManager
 {
     public class FileSystem
     {
+        private VirtualDisk Disk;
+        
+        public FileSystem(VirtualDisk disk)
+        {
+            Disk = disk;
+        }
+        
         public void getRoot()
         {
             
@@ -45,6 +53,14 @@ namespace FileManager
         public void createFile()
         {
             
+        }
+
+        public DirectoryTable parseTableAtBlock(ushort block)
+        {
+            var read1 = Disk.ReadBlock(block);
+            var read2 = Disk.ReadBlock((ushort) (block + 1));
+           
+            return DirectoryTable.createFromBytes(read1.Concat(read2).ToArray());
         }
     }
 }
