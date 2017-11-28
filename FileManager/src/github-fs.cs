@@ -49,7 +49,7 @@ namespace FileManager
             return current;
         }
 
-        public void getFile(string pathname)
+        public File getFile(string pathname)
         {
             File output = null;
 
@@ -66,7 +66,9 @@ namespace FileManager
             ushort block_location;
             DirectoryTable x = getDirectoryContents(path);
             /* if filename w/in x: */
-            for (row in x.rows) {
+            int j;
+            for (j = 0; j < x.Rows.Count; j++) {
+                row = x.Rows[j];
             /* if current row describes the location for filename, correct_path = 1 */ 
                 if (row.itemName == filename) {
                     block_location = row.blockStart;
@@ -78,12 +80,18 @@ namespace FileManager
             /* check to see if the file is in the given path */
             if (correct_path == 1) { /* if the file is in the given path */
                 byte[] encoded_file = Disk.readBlock(block_location);
+                char[] decoded_file_characters = new char[encoded_file.length];
                 /* convert encoded_file into the corresponding File object named "output" */
-                return;
+                for (int i = 0; i < encoded_file.length; i++) {
+                    decoded_file_characters[i] = (char) encoded_file[i];
+                }
+                string output_string = new string(decoded_file_characters);
+
+                return output_string;
             }
             else {                  /* o/w bad arguments */
                 //return "ya done fuckd up";
-                return;
+                return null;
             }
         }
 
