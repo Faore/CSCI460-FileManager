@@ -1,5 +1,6 @@
 ﻿    using System;
     using System.Diagnostics.SymbolStore;
+    using System.Text;
 
 namespace FileManager
     {
@@ -81,7 +82,7 @@ namespace FileManager
             public string getString()
             {
                 //Return the string without any null characters.
-                return name.ToString().Replace("\0", string.Empty);
+                return new string(name).Trim('\0');
             }
         }
     }

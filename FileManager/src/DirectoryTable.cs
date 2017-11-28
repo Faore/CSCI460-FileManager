@@ -44,7 +44,8 @@ namespace FileManager
                     bytes[j] = data[i * 64 + j];
                 }
                 DirectoryRow row = DirectoryRow.createFromBytes(bytes);
-                if (row.getString() != string.Empty && row.name != null)
+                string str = row.getString();
+                if (str != string.Empty && row.name != null)
                 {
                     table.InsertRow(row);                    
                 } 

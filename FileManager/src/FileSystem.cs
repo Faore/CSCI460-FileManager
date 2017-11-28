@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -21,6 +22,10 @@ namespace FileManager
 
         public DirectoryTable getDirectoryContents(string path)
         {
+            if (path == "/")
+            {
+                return getRoot();
+            }
             string[] p1 = path.Split('/');
             DirectoryTable current = getRoot();
             DirectoryTable last = current;
@@ -56,6 +61,35 @@ namespace FileManager
         public void createDirectory(string name, string path)
         {
             
+        }
+
+        public bool[] getFreeBlocks()
+        {
+            bool[] free = new bool[ushort.MaxValue];
+            for (ushort i = 0; i < ushort.MaxValue; i++)
+            {
+                free[i] = true;
+            }
+            Stack<DirectoryTable> toProcessStack = new Stack<DirectoryTable>();
+            toProcessStack.Push(getRoot());
+            while (toProcessStack.Count > 0)
+            {
+                var current = toProcessStack.Pop();
+                foreach (DirectoryRow row in current.Rows)
+                {
+                    if (row.isFile)
+                    {
+                        free[row.blockStart] = false;
+                    }
+                    else
+                    {
+                        free[row.blockStart] = false;
+                        free[row.blockStart + 1] = false;
+                        toProcessStack.Push(parseTableAtBlock(row.blockStart));
+                    }
+                }
+            }
+            return free;
         }
 
         public void createFile()
