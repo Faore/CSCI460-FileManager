@@ -53,10 +53,10 @@ namespace FileManager
             return current;
         }
 
-//        public void getFile()
-//        {
-//            
-//        }
+        public void getFile()
+        {
+            
+        }
 
         public string getFile(string pathname)
         {
@@ -103,9 +103,45 @@ namespace FileManager
             }
         }
 
+        public DirectoryTable getParentPath(string path)
+        {
+            var splitPath = path.Split('/');
+            var superParentPath = "";
+            DirectoryTable superParent;
+            for (int k = 1; k < splitPath.Length - 1; k++)
+            {
+                superParentPath += "/";
+                superParentPath += splitPath[k];
+            }
+            if (superParentPath == String.Empty)
+            {
+                superParent = getRoot();
+                return superParent;
+            }
+            else
+            {
+                superParent = getDirectoryContents(superParentPath);
+                return superParent;
+            }
+        }
+
         public void createDirectory(string name, string path)
         {
-            
+            DirectoryTable parentDirectory = getDirectoryContents(path);
+            parentDirectory.InsertRow(new DirectoryRow(name, findFirstFreeBlockPair(), 0, 0));
+            var splitPath = path.Split('/');
+            var superParent = getParentPath(path);
+            for (int i = 0; i < superParent.Rows.Count; i++)
+            {
+                if (superParent.Rows[i].getString() == splitPath[splitPath.Length - 1])
+                {
+                    var bytes = parentDirectory.toBytes();
+                    Disk.WriteBlock(superParent.Rows[i].blockStart, bytes.Take(bytes.Length/2).ToArray());
+                    Disk.WriteBlock(superParent.Rows[i].blockStart, bytes.Skip(bytes.Length/2).ToArray());
+                    return;
+                }
+            }
+            throw new Exception("Something is horribly wrong with the file system.");
         }
 
         public ushort findFirstFreeBlock()
