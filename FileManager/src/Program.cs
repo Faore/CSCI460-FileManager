@@ -8,8 +8,33 @@ namespace FileManager
     {
         public static void Main(string[] args)
         {
-            var fileManager = new FileManager(new FileSystem(new VirtualDisk()));
-            fileManager.startConsole();
+            //var fileManager = new FileManager(new FileSystem(new VirtualDisk()));
+            //fileManager.startConsole();
+            
+            var vd = new VirtualDisk();
+            var fs = new FileSystem(vd);
+            
+            var table = new DirectoryTable();
+            table.InsertRow(new DirectoryRow("folder1",2,0,0));
+            
+            vd.WriteBlock(0, table.toBytes().Take(table.toBytes().Length/2).ToArray());
+            vd.WriteBlock(1, table.toBytes().Skip(table.toBytes().Length/2).ToArray());
+            
+            table = new DirectoryTable();
+            table.InsertRow(new DirectoryRow("folder2",4,0,0));
+            
+            vd.WriteBlock(2, table.toBytes().Take(table.toBytes().Length/2).ToArray());
+            vd.WriteBlock(3, table.toBytes().Skip(table.toBytes().Length/2).ToArray());
+            
+            table = new DirectoryTable();
+            table.InsertRow(new DirectoryRow("doom",6,0,0));
+            
+            vd.WriteBlock(4, table.toBytes().Take(table.toBytes().Length/2).ToArray());
+            vd.WriteBlock(5, table.toBytes().Skip(table.toBytes().Length/2).ToArray());
+
+            fs.getDirectoryContents("/folder1/folder2");
+            fs.getDirectoryContents("/folder1");
+            fs.getDirectoryContents("/");
 
             //Example Test
             /*var table = new DirectoryTable();
