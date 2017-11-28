@@ -11,6 +11,7 @@ namespace FileManager
             //var fileManager = new FileManager(new FileSystem(new VirtualDisk()));
             //fileManager.startConsole();
             
+            
             var vd = new VirtualDisk();
             var fs = new FileSystem(vd);
             
@@ -32,9 +33,12 @@ namespace FileManager
             vd.WriteBlock(4, table.toBytes().Take(table.toBytes().Length/2).ToArray());
             vd.WriteBlock(5, table.toBytes().Skip(table.toBytes().Length/2).ToArray());
 
-            fs.getDirectoryContents("/folder1/folder2");
-            fs.getDirectoryContents("/folder1");
-            fs.getDirectoryContents("/");
+            //fs.getDirectoryContents("/folder1/folder2");
+            //fs.getDirectoryContents("/folder1");
+            //fs.getDirectoryContents("/");
+            
+            var fileManager = new FileManager(fs);
+            fileManager.startConsole();
 
             //Example Test
             /*var table = new DirectoryTable();

@@ -11,15 +11,17 @@ namespace FileManager
     {
         private string CurrentPath;
         private FileSystem FileSystem;
-        private Dictionary<string, Delegate> Commands;
+        private Dictionary<string, Tuple<string, Delegate>> Commands;
 
         public FileManager(FileSystem fileSystem)
         {
             this.CurrentPath = "/";
             this.FileSystem = fileSystem;
-            this.Commands = new Dictionary<string, Delegate>();
-            Commands.Add("ls", new Func<string[], bool>(CommandLS));
-            Commands.Add("exit", new Func<string[], bool>(CommandExit));
+            this.Commands = new Dictionary<string, Tuple<string, Delegate>>();
+            Commands.Add("ls", new Tuple<string, Delegate>("Display the contents of the current directory, or a given path.", new Func<string[], bool>(CommandLS)));
+            Commands.Add("exit", new Tuple<string, Delegate>("Exits the application.", new Func<string[], bool>(CommandExit)));
+            Commands.Add("cd", new Tuple<string, Delegate>("Changes the directory to the given path.", new Func<string[], bool>(CommandCD)));
+            Commands.Add("help", new Tuple<string, Delegate>("Displays this help message.", new Func<string[], bool>(CommandHelp)));
         }
 
         public void startConsole()
@@ -38,7 +40,7 @@ namespace FileManager
                 Object[] invoke = new object[]{args};
                 if (Commands.ContainsKey(args[0].ToLower()))
                 {
-                    if (!(bool) Commands[args[0]].DynamicInvoke(invoke))
+                    if (!(bool) Commands[args[0]].Item2.DynamicInvoke(invoke))
                 {
                         break;
                     }
@@ -64,6 +66,10 @@ namespace FileManager
             string[] splitPath = trimmed.Split('/');
             foreach (string item in splitPath)
             {
+                if (item == String.Empty)
+                {
+                    continue;
+                }
                 if (item == "..")
                 {
                     fullPath.RemoveAt(fullPath.Count - 1);
@@ -78,6 +84,15 @@ namespace FileManager
             return "/" + string.Join("/", fullPath.ToArray());
         }
 
+        public bool CommandHelp(string[] args)
+        {
+            foreach (var command in Commands)
+            {
+                Console.WriteLine($"{command.Key}\t{command.Value.Item1}");
+            }
+            return true;
+        }
+        
         public bool CommandCD(string[] args)
         {
             if (args.Length == 1)
@@ -116,7 +131,12 @@ namespace FileManager
 
         public string parseDirectory(DirectoryTable table)
         {
-            return String.Empty;
+            string output = "";
+            foreach (var row in table.Rows)
+            {
+                output += $"{row.getString()}\n";
+            }
+            return output;
         }
 
         //I didn't feel like parsing out arguments to commands myself on the command line. So I used some black magic.
