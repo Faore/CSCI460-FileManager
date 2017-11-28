@@ -63,10 +63,10 @@ namespace FileManager
             File output = null;
 
             /* separate pathname into path and name */
-            string[] split_pathname =  pathname.split('/');
-            string filename = split_pathname[split_pathname.length];    /* filename is the last element of the pathname */
-            string path;
-            for (int i = 0; i < split_pathname.length - 1; i++) {
+            string[] split_pathname =  pathname.Split('/');
+            string filename = split_pathname[split_pathname.Length];    /* filename is the last element of the pathname */
+            string path = "";
+            for (int i = 0; i < split_pathname.Length - 1; i++) {
                 path += split_pathname[i];
             }
 
@@ -77,9 +77,9 @@ namespace FileManager
             /* if filename w/in x: */
             int j;
             for (j = 0; j < x.Rows.Count; j++) {
-                row = x.Rows[j];
+                var row = x.Rows[j];
             /* if current row describes the location for filename, correct_path = 1 */ 
-                if (row.itemName == filename) {
+                if (row.getString() == filename) {
                     block_location = row.blockStart;
                     correct_path = 1;
                     break;
@@ -90,20 +90,20 @@ namespace FileManager
             if (correct_path == 1) { /* if the file is in the given path */
                 if (block_location == 0) {
                     /* the impossible has happened */
-                    return "ya done fuckd up";
+                    throw new Exception("ya done fuckd up");
                 }
-                byte[] encoded_file = Disk.readBlock(block_location);
-                char[] decoded_file_characters = new char[encoded_file.length];
+                byte[] encoded_file = Disk.ReadBlock(block_location);
+                char[] decoded_file_characters = new char[encoded_file.Length];
                 /* convert encoded_file into the corresponding File object named "output" */
-                for (int i = 0; i < encoded_file.length; i++) {
+                for (int i = 0; i < encoded_file.Length; i++) {
                     decoded_file_characters[i] = (char) encoded_file[i];
                 }
                 string output_string = new string(decoded_file_characters);
-                File output_file = new File(filename, string(encoded_file));
+                File output_file = new File(filename, System.Text.Encoding.Default.GetString(encoded_file));
                 return output_file;
             }
             else {                  /* o/w bad arguments */
-                return "ya done fuckd up";
+                throw new Exception("ya done fuckd up");
             }
         }
 

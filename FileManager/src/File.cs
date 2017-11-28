@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 
 namespace FileManager
 {
@@ -19,15 +20,15 @@ namespace FileManager
         public File(string filename_in, string data)
         {
             filename = filename_in;
-            file_data = data.ToCharArray();
-            filesize = (int) file_data.length;
+            file_data = Encoding.ASCII.GetBytes(data);
+            filesize = (int) file_data.Length;
         }
 
 
         /* File functions */
         public int required_num_blocks()
         {
-            return ( (int) Math.ceiling(filesize / 1024));
+            return ( (int) Math.Ceiling((double) (filesize / 1024)));
         }
     }
 }
