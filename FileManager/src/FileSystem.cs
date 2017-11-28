@@ -179,9 +179,13 @@ namespace FileManager
             return free;
         }
 
-        public void createFile()
+        /* Doesn't actually create the File object, just finds the free memory in the virtual disk and inserts it there */
+        public void createFile(string path, File file)
         {
-            
+          //  DirectoryTable table_to_update = getDirectoryContents(path);
+          //  DirectoryRow row_to_insert = new DirectoryRow(file.filename)
+          //  table_to_update.
+            return;
         }
 
         public DirectoryTable parseTableAtBlock(ushort block)
