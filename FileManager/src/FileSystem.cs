@@ -89,6 +89,7 @@ namespace FileManager
                     }
                 }
             }
+            return free;
         }
 
         public void createFile()
