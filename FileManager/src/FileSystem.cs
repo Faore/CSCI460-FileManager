@@ -291,9 +291,15 @@ namespace FileManager
         /* Doesn't actually create the File object, just finds the free memory in the virtual disk and inserts it there */
         public void CreateFile(string path, File file)
         {
-            //  DirectoryTable table_to_update = getDirectoryContents(path);
-            //  DirectoryRow row_to_insert = new DirectoryRow(file.filename)
-            //  table_to_update.
+            //find the free blocks corresponding to path
+            bool[] available_blocks = GetFreeBlocks();
+            DirectoryTable directorycontents = getDirectoryContents(path);
+            int ;
+            for (i = 0; i < directorycontents.Rows.Count; i++) {
+               directorycontents.GetRow((byte) i);
+            }
+            //encode the file object
+            //write the encoding to the virtual disk
             return;
         }
 
