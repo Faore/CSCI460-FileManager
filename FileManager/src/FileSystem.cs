@@ -64,9 +64,9 @@ namespace FileManager
 
             /* separate pathname into path and name */
             string[] split_pathname =  pathname.split('/');
-            string filename = split_pathname[split_pathname.length];    /* filename is the last element of the pathname */
+            string filename = split_pathname[split_pathname.Length];    /* filename is the last element of the pathname */
             string path;
-            for (int i = 0; i < split_pathname.length - 1; i++) {
+            for (int i = 0; i < split_pathname.Length - 1; i++) {
                 path += split_pathname[i];
             }
 
@@ -93,9 +93,9 @@ namespace FileManager
                     return "ya done fuckd up";
                 }
                 byte[] encoded_file = Disk.readBlock(block_location);
-                char[] decoded_file_characters = new char[encoded_file.length];
+                char[] decoded_file_characters = new char[encoded_file.Length];
                 /* convert encoded_file into the corresponding File object named "output" */
-                for (int i = 0; i < encoded_file.length; i++) {
+                for (int i = 0; i < encoded_file.Length; i++) {
                     decoded_file_characters[i] = (char) encoded_file[i];
                 }
                 string output_string = new string(decoded_file_characters);
