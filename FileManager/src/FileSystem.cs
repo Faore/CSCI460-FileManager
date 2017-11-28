@@ -66,6 +66,7 @@ namespace FileManager
             string[] split_pathname =  pathname.Split('/');
             string filename = split_pathname[split_pathname.Length];    /* filename is the last element of the pathname */
             string path = "";
+
             for (int i = 0; i < split_pathname.Length - 1; i++) {
                 path += split_pathname[i];
             }
@@ -215,9 +216,13 @@ namespace FileManager
             return free;
         }
 
-        public void createFile()
+        /* Doesn't actually create the File object, just finds the free memory in the virtual disk and inserts it there */
+        public void createFile(string path, File file)
         {
-            
+          //  DirectoryTable table_to_update = getDirectoryContents(path);
+          //  DirectoryRow row_to_insert = new DirectoryRow(file.filename)
+          //  table_to_update.
+            return;
         }
 
         public DirectoryTable parseTableAtBlock(ushort block)
