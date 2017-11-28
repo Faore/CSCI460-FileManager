@@ -58,7 +58,7 @@ namespace FileManager
 //            
 //        }
 
-        public string getFile(string pathname)
+        public File getFile(string pathname)
         {
             File output = null;
 
@@ -72,7 +72,7 @@ namespace FileManager
 
             /* search the given path for file */
             int correct_path = 0;
-            ushort block_location;
+            ushort block_location = 0;
             DirectoryTable x = getDirectoryContents(path);
             /* if filename w/in x: */
             int j;
@@ -88,6 +88,10 @@ namespace FileManager
 
             /* check to see if the file is in the given path */
             if (correct_path == 1) { /* if the file is in the given path */
+                if (block_location == 0) {
+                    /* the impossible has happened */
+                    return "ya done fuckd up";
+                }
                 byte[] encoded_file = Disk.readBlock(block_location);
                 char[] decoded_file_characters = new char[encoded_file.length];
                 /* convert encoded_file into the corresponding File object named "output" */
@@ -95,8 +99,8 @@ namespace FileManager
                     decoded_file_characters[i] = (char) encoded_file[i];
                 }
                 string output_string = new string(decoded_file_characters);
-
-                return output_string;
+                File output_file = new File(filename, string(encoded_file));
+                return output_file;
             }
             else {                  /* o/w bad arguments */
                 return "ya done fuckd up";
