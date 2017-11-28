@@ -13,6 +13,12 @@ namespace FileManager
 
             public bool IsFile => Size != 0;
 
+            public ushort ReferencedBlockCount => Convert.ToUInt16(
+                Math.Ceiling(
+                    (double) (Size / 1024)
+                )
+            );
+
             public DirectoryRow(string n, ushort b, ushort s, ushort x)
             {
                 if(n.Length >58)

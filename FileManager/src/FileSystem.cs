@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.Remoting.Messaging;
+using System.Security.Cryptography;
 
 namespace FileManager
 {
@@ -53,56 +56,89 @@ namespace FileManager
             return current;
         }
 
-        public void GetFile()
+        private List<DirectoryRow> SortTableEntries(List<DirectoryRow> entries)
         {
-            
+            var sortedEntries = new List<DirectoryRow>();
+            ushort lookForNext = 0;
+            foreach (var entry in entries)
+            {
+                if (entry.Next != 0) continue;
+                //This is the last entry (without a next);
+                sortedEntries.Add(entry);
+                entries.Remove(entry);
+                lookForNext = entry.BlockStart;
+                break;
+            }
+            if (sortedEntries.Count == 0)
+            {
+                throw new Exception("Could not find final file entry. File System is corrupted.");
+            }
+            while (entries.Count > 0)
+            {
+                foreach (var entry in entries)
+                {
+                    if (entry.Next != lookForNext) continue;
+                    sortedEntries.Add(entry);
+                    entries.Remove(entry);
+                    lookForNext = entry.BlockStart;
+                    break;
+                }
+                throw new Exception("Parent table entry not found. File System is corrupted.");
+            }
+            sortedEntries.Reverse();
+            return sortedEntries;
+        }
+
+        private byte[] CollapseBlockSeperatedList(List<byte[]> list)
+        {
+            var bytes = new byte[0];
+            return list.Aggregate(bytes, (current, b) => current.Concat(b).ToArray());
         }
 
         public File GetFile(string pathname)
         {
             /* separate pathname into path and name */
             var splitPathname =  pathname.Split('/');
-            var filename = splitPathname[splitPathname.Length];    /* filename is the last element of the pathname */
+            var filename = splitPathname[splitPathname.Length - 1];    /* filename is the last element of the pathname */
             var path = "";
-
-            for (var i = 0; i < splitPathname.Length - 1; i++) {
-                path += splitPathname[i];
+            DirectoryTable x;
+            if (splitPathname.Length == 2)
+            {
+                x = GetRoot();
             }
-
-            /* search the given path for file */
-            var correctPath = 0;
-            ushort blockLocation = 0;
-            var x = GetDirectoryContents(path);
-            /* if filename w/in x: */
-            int j;
-            for (j = 0; j < x.Rows.Count; j++) {
-                var row = x.Rows[j];
-            /* if current row describes the location for filename, correct_path = 1 */
-                if (row.GetString() != filename) continue;
-                blockLocation = row.BlockStart;
-                correctPath = 1;
-                break;
-            }
-
-            /* check to see if the file is in the given path */
-            if (correctPath == 1) { /* if the file is in the given path */
-                if (blockLocation == 0) {
-                    /* the impossible has happened */
-                    throw new Exception("ya done fuckd up");
+            else
+            {
+                for (var i = 1; i < splitPathname.Length - 1; i++) {
+                    path += $"/{splitPathname[i]}";
                 }
-                var encodedFile = _disk.ReadBlock(blockLocation);
-                var decodedFileCharacters = new char[encodedFile.Length];
-                /* convert encoded_file into the corresponding File object named "output" */
-                for (var i = 0; i < encodedFile.Length; i++) {
-                    decodedFileCharacters[i] = (char) encodedFile[i];
+                x = GetDirectoryContents(path);
+            }
+            
+            var tableEntries = new List<DirectoryRow>();
+            tableEntries = SortTableEntries(tableEntries);
+            // Build the file.
+            var blockSeperatedContents = new List<byte[]>();
+            foreach (var entry in tableEntries)
+            {
+                var remainingSizeInEntry = entry.Size; 
+                for (ushort i = 0; i < entry.ReferencedBlockCount; i++)
+                {
+                    if (remainingSizeInEntry >= 1024)
+                    {
+                        blockSeperatedContents.Add(_disk.ReadBlock((ushort) (entry.BlockStart + i)));
+                        remainingSizeInEntry -= 1024;
+                    }
+                    else
+                    {
+                        var block = _disk.ReadBlock((ushort) (entry.BlockStart + i));
+                        blockSeperatedContents.Add(block.Take(remainingSizeInEntry).ToArray());
+                    }
                 }
-                var outputString = new string(decodedFileCharacters);
-                var outputFile = new File(filename, System.Text.Encoding.Default.GetString(encodedFile));
-                return outputFile;
             }
-            else {                  /* o/w bad arguments */
-                throw new Exception("ya done fuckd up");
-            }
+
+            var fileBytes = CollapseBlockSeperatedList(blockSeperatedContents);
+            var outputFile = new File(filename, System.Text.Encoding.ASCII.GetString(fileBytes));
+            return outputFile;
         }
 
         private DirectoryTable GetParentPath(string path)
@@ -130,9 +166,13 @@ namespace FileManager
         public void CreateDirectory(string name, string path)
         {
             var parentDirectory = GetDirectoryContents(path);
-            parentDirectory.InsertRow(new DirectoryRow(name, FindFirstFreeBlockPair(), 0, 0));
+            var freeBlocks = FindFirstFreeBlockPair();
+            parentDirectory.InsertRow(new DirectoryRow(name, freeBlocks.Item1, 0, 0));
             var splitPath = path.Split('/');
             var superParent = GetParentPath(path);
+            var targetDirectory = new DirectoryTable();
+            _disk.WriteBlock(freeBlocks.Item1, targetDirectory.ToBytes().Take(targetDirectory.ToBytes().Length/2).ToArray());
+            _disk.WriteBlock(freeBlocks.Item1, targetDirectory.ToBytes().Skip(targetDirectory.ToBytes().Length/2).ToArray());
             foreach (var t in superParent.Rows)
             {
                 if (t.GetString() != splitPath[splitPath.Length - 1]) continue;
@@ -142,6 +182,40 @@ namespace FileManager
                 return;
             }
             throw new Exception("Something is horribly wrong with the file system.");
+        }
+
+        public Tuple<ushort, ushort> FindContiguousFreeBlocks(ushort n, bool[] freeBlocks)
+        {
+            var nFree = new bool[n];
+            for (ushort i = 0; i < (ushort) freeBlocks.Length; i++)
+            {
+                Array.Copy(nFree, 1, nFree, 0, nFree.Length - 1);
+                if (freeBlocks[i])
+                {
+                    nFree[0] = true;
+                }
+                else
+                {
+                    nFree[0] = false;
+                }
+                var solution = true;
+                foreach (var b in nFree)
+                {
+                    if (b) continue;
+                    solution = false;
+                    break;
+                }
+                if (solution)
+                {
+                    return new Tuple<ushort, ushort>((ushort) (i - n), i);
+                }
+            }
+            return null;
+        }
+
+        public Tuple<ushort, ushort>[] FindNonContiguousFreeBlocks(ushort n)
+        {
+            
         }
 
         public ushort FindFirstFreeBlock()
@@ -157,7 +231,7 @@ namespace FileManager
             throw new Exception("Virtual disk is full.");
         }
 
-        private ushort FindFirstFreeBlockPair()
+        private Tuple<ushort, ushort> FindFirstFreeBlockPair()
         {
             var free = GetFreeBlocks();
             var lastFree = false;
@@ -167,7 +241,7 @@ namespace FileManager
                 {
                     if (lastFree)
                     {
-                        return (ushort) (i - 1);
+                        return new Tuple<ushort, ushort>((ushort) (i - 1), i);
                     }
                     else
                     {
@@ -178,7 +252,7 @@ namespace FileManager
                 {
                     lastFree = false;
                 }
-        }
+            }
             throw new Exception("Virtual disk is full.");
         }
 
@@ -198,7 +272,10 @@ namespace FileManager
                 {
                     if (row.IsFile)
                     {
-                        free[row.BlockStart] = false;
+                        for (ushort i = 0; i < row.ReferencedBlockCount; i++)
+                        {
+                            free[row.BlockStart + i] = false;
+                        }
                     }
                     else
                     {
@@ -214,9 +291,9 @@ namespace FileManager
         /* Doesn't actually create the File object, just finds the free memory in the virtual disk and inserts it there */
         public void CreateFile(string path, File file)
         {
-          //  DirectoryTable table_to_update = getDirectoryContents(path);
-          //  DirectoryRow row_to_insert = new DirectoryRow(file.filename)
-          //  table_to_update.
+            //  DirectoryTable table_to_update = getDirectoryContents(path);
+            //  DirectoryRow row_to_insert = new DirectoryRow(file.filename)
+            //  table_to_update.
             return;
         }
 
