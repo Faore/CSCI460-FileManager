@@ -198,13 +198,7 @@ namespace FileManager
                 {
                     nFree[0] = false;
                 }
-                var solution = true;
-                foreach (var b in nFree)
-                {
-                    if (b) continue;
-                    solution = false;
-                    break;
-                }
+                var solution = nFree.All(b => b);
                 if (solution)
                 {
                     return new Tuple<ushort, ushort>((ushort) (i - n), i);
@@ -213,9 +207,33 @@ namespace FileManager
             return null;
         }
 
-        public Tuple<ushort, ushort>[] FindNonContiguousFreeBlocks(ushort n)
+        public Tuple<ushort, ushort>[] FindNonContiguousFreeBlocks(ushort n, bool[] freeBlocks)
         {
-            
+            var list = new List<Tuple<ushort, ushort>>();
+            var neededBlocks = n;
+            while (neededBlocks > 0)
+            {
+                var found = false;
+                for (int i = neededBlocks; i > 0; i--)
+                {
+                    var blocks = FindContiguousFreeBlocks(neededBlocks, freeBlocks);
+                    if (blocks == null) continue;
+                    neededBlocks -= (ushort) i;
+                    list.Add(blocks);
+                    for (int j = blocks.Item1; j <= blocks.Item2; j++)
+                    {
+                        freeBlocks[j] = false;
+                    }
+                    found = true;
+                    break;
+                }
+                if (!found)
+                {
+                    //Theres not enough disk space for the required number of blocks.
+                    return null;
+                }
+            }
+            return list.ToArray();
         }
 
         public ushort FindFirstFreeBlock()
