@@ -78,6 +78,21 @@ namespace FileManager
             return "/" + string.Join("/", fullPath.ToArray());
         }
 
+        public bool CommandCD(string[] args)
+        {
+            if (args.Length == 1)
+            {
+                return true;
+            }
+            else
+            {
+                string path = convertToAbsolutePath(args[1]);
+                FileSystem.getDirectoryContents(path);
+                CurrentPath = convertToAbsolutePath(path);
+            }
+            return true;
+        }
+
         public bool CommandLS(string[] args)
         {
             if (args.Length == 1)
