@@ -53,9 +53,54 @@ namespace FileManager
             return current;
         }
 
-        public void getFile()
+//        public void getFile()
+//        {
+//            
+//        }
+
+        public string getFile(string pathname)
         {
-            
+            File output = null;
+
+            /* separate pathname into path and name */
+            string[] split_pathname =  pathname.split('/');
+            string filename = split_pathname[split_pathname.length];    /* filename is the last element of the pathname */
+            string path;
+            for (int i = 0; i < split_pathname.length - 1; i++) {
+                path += split_pathname[i];
+            }
+
+            /* search the given path for file */
+            int correct_path = 0;
+            ushort block_location;
+            DirectoryTable x = getDirectoryContents(path);
+            /* if filename w/in x: */
+            int j;
+            for (j = 0; j < x.Rows.Count; j++) {
+                row = x.Rows[j];
+            /* if current row describes the location for filename, correct_path = 1 */ 
+                if (row.itemName == filename) {
+                    block_location = row.blockStart;
+                    correct_path = 1;
+                    break;
+                }
+            }
+
+            /* check to see if the file is in the given path */
+            if (correct_path == 1) { /* if the file is in the given path */
+                byte[] encoded_file = Disk.readBlock(block_location);
+                char[] decoded_file_characters = new char[encoded_file.length];
+                /* convert encoded_file into the corresponding File object named "output" */
+                for (int i = 0; i < encoded_file.length; i++) {
+                    decoded_file_characters[i] = (char) encoded_file[i];
+                }
+                string output_string = new string(decoded_file_characters);
+
+                return output_string;
+            }
+            else {                  /* o/w bad arguments */
+                return "ya done fuckd up";
+            }
         }
 
         public void createDirectory(string name, string path)
