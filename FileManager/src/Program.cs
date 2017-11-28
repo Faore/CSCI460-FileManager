@@ -18,27 +18,27 @@ namespace FileManager
             var table = new DirectoryTable();
             table.InsertRow(new DirectoryRow("folder1",2,0,0));
             
-            vd.WriteBlock(0, table.toBytes().Take(table.toBytes().Length/2).ToArray());
-            vd.WriteBlock(1, table.toBytes().Skip(table.toBytes().Length/2).ToArray());
+            vd.WriteBlock(0, table.ToBytes().Take(table.ToBytes().Length/2).ToArray());
+            vd.WriteBlock(1, table.ToBytes().Skip(table.ToBytes().Length/2).ToArray());
             
             table = new DirectoryTable();
             table.InsertRow(new DirectoryRow("folder2",4,0,0));
             
-            vd.WriteBlock(2, table.toBytes().Take(table.toBytes().Length/2).ToArray());
-            vd.WriteBlock(3, table.toBytes().Skip(table.toBytes().Length/2).ToArray());
+            vd.WriteBlock(2, table.ToBytes().Take(table.ToBytes().Length/2).ToArray());
+            vd.WriteBlock(3, table.ToBytes().Skip(table.ToBytes().Length/2).ToArray());
             
             table = new DirectoryTable();
             table.InsertRow(new DirectoryRow("doom",6,0,0));
             
-            vd.WriteBlock(4, table.toBytes().Take(table.toBytes().Length/2).ToArray());
-            vd.WriteBlock(5, table.toBytes().Skip(table.toBytes().Length/2).ToArray());
+            vd.WriteBlock(4, table.ToBytes().Take(table.ToBytes().Length/2).ToArray());
+            vd.WriteBlock(5, table.ToBytes().Skip(table.ToBytes().Length/2).ToArray());
 
             //fs.getDirectoryContents("/folder1/folder2");
             //fs.getDirectoryContents("/folder1");
             //fs.getDirectoryContents("/");
             
             var fileManager = new FileManager(fs);
-            fileManager.startConsole();
+            fileManager.StartConsole();
 
             //Example Test
             /*var table = new DirectoryTable();

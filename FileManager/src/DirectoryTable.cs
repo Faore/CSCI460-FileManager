@@ -6,7 +6,6 @@ namespace FileManager
 {
     public class DirectoryTable
     {
-        private byte[] BlockData;
         public readonly List<DirectoryRow> Rows;
 
         public DirectoryTable()
@@ -33,19 +32,19 @@ namespace FileManager
             Rows.Remove(row);
         }
         
-        public static DirectoryTable createFromBytes(byte[] data)//return type will be DirectoryTable
+        public static DirectoryTable CreateFromBytes(byte[] data)//return type will be DirectoryTable
         {
-            DirectoryTable table = new DirectoryTable();
-            for (int i = 0; i < 32; i++)
+            var table = new DirectoryTable();
+            for (var i = 0; i < 32; i++)
             {
-                byte[] bytes = new byte[64];
-                for (int j = 0; j < 64; j++)
+                var bytes = new byte[64];
+                for (var j = 0; j < 64; j++)
                 {
                     bytes[j] = data[i * 64 + j];
                 }
-                DirectoryRow row = DirectoryRow.createFromBytes(bytes);
-                string str = row.getString();
-                if (str != string.Empty && row.name != null)
+                var row = DirectoryRow.CreateFromBytes(bytes);
+                var str = row.GetString();
+                if (str != string.Empty && row.Name != null)
                 {
                     table.InsertRow(row);                    
                 } 
@@ -53,13 +52,13 @@ namespace FileManager
             return table;
         }
 
-        public byte[] toBytes()
+        public byte[] ToBytes()
         {
-            byte[] bytes = new byte[2048];
-            for (int i = 0; i < Rows.Count; i++)
+            var bytes = new byte[2048];
+            for (var i = 0; i < Rows.Count; i++)
             {
-                byte[] row = ((DirectoryRow) Rows[i]).toBytes();
-                for (int j = 0; j < 64; j++)
+                var row = ((DirectoryRow) Rows[i]).ToBytes();
+                for (var j = 0; j < 64; j++)
                 {
                     bytes[i * 64 + j] = row[j];
                 }

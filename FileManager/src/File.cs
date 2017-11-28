@@ -11,24 +11,18 @@ namespace FileManager
     public class File
     {
         /* File local variables */
-        int filesize;
-        string filename;
-        byte[] file_data;
+        public string Filename;
+        public byte[] FileData;
 
+        public ulong Filesize => Convert.ToUInt64(FileData.Length);
+
+        public ushort RequiredBlocks => Convert.ToUInt16(Math.Ceiling((double) (Filesize / 1024)));
 
         /* Constructor */
-        public File(string filename_in, string data)
+        public File(string filenameIn, string data)
         {
-            filename = filename_in;
-            file_data = Encoding.ASCII.GetBytes(data);
-            filesize = (int) file_data.Length;
-        }
-
-
-        /* File functions */
-        public int required_num_blocks()
-        {
-            return ( (int) Math.Ceiling((double) (filesize / 1024)));
+            Filename = filenameIn;
+            FileData = Encoding.ASCII.GetBytes(data);
         }
     }
 }

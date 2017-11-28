@@ -9,22 +9,22 @@ namespace FileManager
 {
     public class FileManager
     {
-        private string CurrentPath;
-        private FileSystem FileSystem;
-        private Dictionary<string, Tuple<string, Delegate>> Commands;
+        private string _currentPath;
+        private readonly FileSystem _fileSystem;
+        private readonly Dictionary<string, Tuple<string, Delegate>> _commands;
 
         public FileManager(FileSystem fileSystem)
         {
-            this.CurrentPath = "/";
-            this.FileSystem = fileSystem;
-            this.Commands = new Dictionary<string, Tuple<string, Delegate>>();
-            Commands.Add("ls", new Tuple<string, Delegate>("Display the contents of the current directory, or a given path.", new Func<string[], bool>(CommandLS)));
-            Commands.Add("exit", new Tuple<string, Delegate>("Exits the application.", new Func<string[], bool>(CommandExit)));
-            Commands.Add("cd", new Tuple<string, Delegate>("Changes the directory to the given path.", new Func<string[], bool>(CommandCD)));
-            Commands.Add("help", new Tuple<string, Delegate>("Displays this help message.", new Func<string[], bool>(CommandHelp)));
+            this._currentPath = "/";
+            this._fileSystem = fileSystem;
+            this._commands = new Dictionary<string, Tuple<string, Delegate>>();
+            _commands.Add("ls", new Tuple<string, Delegate>("Display the contents of the current directory, or a given path.", new Func<string[], bool>(CommandLs)));
+            _commands.Add("exit", new Tuple<string, Delegate>("Exits the application.", new Func<string[], bool>(CommandExit)));
+            _commands.Add("cd", new Tuple<string, Delegate>("Changes the directory to the given path.", new Func<string[], bool>(CommandCd)));
+            _commands.Add("help", new Tuple<string, Delegate>("Displays this help message.", new Func<string[], bool>(CommandHelp)));
         }
 
-        public void startConsole()
+        public void StartConsole()
         {
             //Simpler than it looks. Forever display the current path and expect a command.
             //A command name is mapped to the dictionary above. If it matches, run it. If it returns false, break the loop and exit.
@@ -34,13 +34,13 @@ namespace FileManager
             Console.WriteLine("FileManager Console Started With FileSystem.");
             while (true)
             {
-                Console.Write($"{CurrentPath}> ");
+                Console.Write($"{_currentPath}> ");
                 var line = Console.ReadLine();
-                String[] args = CommandLineToArgs(line);
-                Object[] invoke = new object[]{args};
-                if (Commands.ContainsKey(args[0].ToLower()))
+                var args = CommandLineToArgs(line);
+                var invoke = new object[]{args};
+                if (_commands.ContainsKey(args[0].ToLower()))
                 {
-                    if (!(bool) Commands[args[0]].Item2.DynamicInvoke(invoke))
+                    if (!(bool) _commands[args[0]].Item2.DynamicInvoke(invoke))
                 {
                         break;
                     }
@@ -52,48 +52,45 @@ namespace FileManager
             }
         }
 
-        public string convertToAbsolutePath(string path)
+        private string ConvertToAbsolutePath(string path)
         {
-            string trimmed = path.TrimEnd('/');
-            string preppedPath = "";
-            List<string> fullPath = new List<string>();
+            var trimmed = path.TrimEnd('/');
+            var preppedPath = "";
+            var fullPath = new List<string>();
             if (!trimmed.StartsWith("/"))
             {
                 //This is not an absolute path
                 //Lets prepend the current path
-                fullPath.AddRange(CurrentPath.Split().Skip(1));
+                fullPath.AddRange(_currentPath.Split().Skip(1));
             }
-            string[] splitPath = trimmed.Split('/');
-            foreach (string item in splitPath)
+            var splitPath = trimmed.Split('/');
+            foreach (var item in splitPath)
             {
-                if (item == String.Empty)
+                switch (item)
                 {
-                    continue;
-                }
-                if (item == "..")
-                {
-                    fullPath.RemoveAt(fullPath.Count - 1);
-                    continue;
-                }
-                if (item == ".")
-                {
-                    continue;
+                    case "":
+                        continue;
+                    case "..":
+                        fullPath.RemoveAt(fullPath.Count - 1);
+                        continue;
+                    case ".":
+                        continue;
                 }
                 fullPath.Add(item);
             }
             return "/" + string.Join("/", fullPath.ToArray());
         }
 
-        public bool CommandHelp(string[] args)
+        private bool CommandHelp(string[] args)
         {
-            foreach (var command in Commands)
+            foreach (var command in _commands)
             {
                 Console.WriteLine($"{command.Key}\t{command.Value.Item1}");
             }
             return true;
         }
-        
-        public bool CommandCD(string[] args)
+
+        private bool CommandCd(string[] args)
         {
             if (args.Length == 1)
             {
@@ -101,40 +98,40 @@ namespace FileManager
             }
             else
             {
-                string path = convertToAbsolutePath(args[1]);
-                FileSystem.getDirectoryContents(path);
-                CurrentPath = convertToAbsolutePath(path);
+                var path = ConvertToAbsolutePath(args[1]);
+                _fileSystem.GetDirectoryContents(path);
+                _currentPath = ConvertToAbsolutePath(path);
             }
             return true;
         }
 
-        public bool CommandLS(string[] args)
+        private bool CommandLs(string[] args)
         {
             if (args.Length == 1)
             {
                 //There were no arguments provided.
-                Console.WriteLine(parseDirectory(FileSystem.getDirectoryContents(CurrentPath)));
+                Console.WriteLine(ParseDirectory(_fileSystem.GetDirectoryContents(_currentPath)));
                 return true;
             }
             else
             {
-                Console.WriteLine(parseDirectory(FileSystem.getDirectoryContents(convertToAbsolutePath(args[1]))));
+                Console.WriteLine(ParseDirectory(_fileSystem.GetDirectoryContents(ConvertToAbsolutePath(args[1]))));
             }
             return true;
         }
 
-        public bool CommandExit(string[] args)
+        private bool CommandExit(string[] args)
         {
             Console.WriteLine("Goodbye.");
             return false;
         }
 
-        public string parseDirectory(DirectoryTable table)
+        private static string ParseDirectory(DirectoryTable table)
         {
-            string output = "";
+            var output = "";
             foreach (var row in table.Rows)
             {
-                output += $"{row.getString()}\n";
+                output += $"{row.GetString()}\n";
             }
             return output;
         }
@@ -145,7 +142,7 @@ namespace FileManager
         [DllImport("shell32.dll", SetLastError = true)]
         static extern IntPtr CommandLineToArgvW([MarshalAs(UnmanagedType.LPWStr)] string lpCmdLine, out int pNumArgs);
 
-        public static string[] CommandLineToArgs(string commandLine)
+        private static string[] CommandLineToArgs(string commandLine)
         {
             int argc;
             var argv = CommandLineToArgvW(commandLine, out argc);

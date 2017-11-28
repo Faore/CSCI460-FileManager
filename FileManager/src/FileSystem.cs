@@ -8,40 +8,40 @@ namespace FileManager
 {
     public class FileSystem
     {
-        private VirtualDisk Disk;
+        private readonly VirtualDisk _disk;
         
         public FileSystem(VirtualDisk disk)
         {
-            Disk = disk;
-        }
-        
-        public DirectoryTable getRoot()
-        {
-            return parseTableAtBlock(0);
+            _disk = disk;
         }
 
-        public DirectoryTable getDirectoryContents(string path)
+        private DirectoryTable GetRoot()
+        {
+            return ParseTableAtBlock(0);
+        }
+
+        public DirectoryTable GetDirectoryContents(string path)
         {
             if (path == "/")
             {
-                return getRoot();
+                return GetRoot();
             }
-            string[] p1 = path.Split('/');
-            DirectoryTable current = getRoot();
-            DirectoryTable last = current;
-            for (int i = 1; i < p1.Length; i++)
+            var p1 = path.Split('/');
+            var current = GetRoot();
+            var last = current;
+            for (var i = 1; i < p1.Length; i++)
             {
-                for (int j = 0; j < current.Rows.Count; j++)
+                for (var j = 0; j < current.Rows.Count; j++)
                 {
-                    if ((current.Rows[j]).getString() == p1[i])
+                    if ((current.Rows[j]).GetString() == p1[i])
                     {
-                        current = parseTableAtBlock(current.Rows[j].blockStart);
+                        current = ParseTableAtBlock(current.Rows[j].BlockStart);
                     }
                 }
                 if (last == current)
                 {
-                    string p2 = "";
-                    for (int k = 1; k <= i; k++)
+                    var p2 = "";
+                    for (var k = 1; k <= i; k++)
                     {
                         p2 += "/";
                         p2 += p1[k];
@@ -53,105 +53,100 @@ namespace FileManager
             return current;
         }
 
-        public void getFile()
+        public void GetFile()
         {
             
         }
 
-        public File getFile(string pathname)
+        public File GetFile(string pathname)
         {
-            File output = null;
-
             /* separate pathname into path and name */
-            string[] split_pathname =  pathname.Split('/');
-            string filename = split_pathname[split_pathname.Length];    /* filename is the last element of the pathname */
-            string path = "";
+            var splitPathname =  pathname.Split('/');
+            var filename = splitPathname[splitPathname.Length];    /* filename is the last element of the pathname */
+            var path = "";
 
-            for (int i = 0; i < split_pathname.Length - 1; i++) {
-                path += split_pathname[i];
+            for (var i = 0; i < splitPathname.Length - 1; i++) {
+                path += splitPathname[i];
             }
 
             /* search the given path for file */
-            int correct_path = 0;
-            ushort block_location = 0;
-            DirectoryTable x = getDirectoryContents(path);
+            var correctPath = 0;
+            ushort blockLocation = 0;
+            var x = GetDirectoryContents(path);
             /* if filename w/in x: */
             int j;
             for (j = 0; j < x.Rows.Count; j++) {
                 var row = x.Rows[j];
-            /* if current row describes the location for filename, correct_path = 1 */ 
-                if (row.getString() == filename) {
-                    block_location = row.blockStart;
-                    correct_path = 1;
-                    break;
-                }
+            /* if current row describes the location for filename, correct_path = 1 */
+                if (row.GetString() != filename) continue;
+                blockLocation = row.BlockStart;
+                correctPath = 1;
+                break;
             }
 
             /* check to see if the file is in the given path */
-            if (correct_path == 1) { /* if the file is in the given path */
-                if (block_location == 0) {
+            if (correctPath == 1) { /* if the file is in the given path */
+                if (blockLocation == 0) {
                     /* the impossible has happened */
                     throw new Exception("ya done fuckd up");
                 }
-                byte[] encoded_file = Disk.ReadBlock(block_location);
-                char[] decoded_file_characters = new char[encoded_file.Length];
+                var encodedFile = _disk.ReadBlock(blockLocation);
+                var decodedFileCharacters = new char[encodedFile.Length];
                 /* convert encoded_file into the corresponding File object named "output" */
-                for (int i = 0; i < encoded_file.Length; i++) {
-                    decoded_file_characters[i] = (char) encoded_file[i];
+                for (var i = 0; i < encodedFile.Length; i++) {
+                    decodedFileCharacters[i] = (char) encodedFile[i];
                 }
-                string output_string = new string(decoded_file_characters);
-                File output_file = new File(filename, System.Text.Encoding.Default.GetString(encoded_file));
-                return output_file;
+                var outputString = new string(decodedFileCharacters);
+                var outputFile = new File(filename, System.Text.Encoding.Default.GetString(encodedFile));
+                return outputFile;
             }
             else {                  /* o/w bad arguments */
                 throw new Exception("ya done fuckd up");
             }
         }
 
-        public DirectoryTable getParentPath(string path)
+        private DirectoryTable GetParentPath(string path)
         {
             var splitPath = path.Split('/');
             var superParentPath = "";
             DirectoryTable superParent;
-            for (int k = 1; k < splitPath.Length - 1; k++)
+            for (var k = 1; k < splitPath.Length - 1; k++)
             {
                 superParentPath += "/";
                 superParentPath += splitPath[k];
             }
-            if (superParentPath == String.Empty)
+            if (superParentPath == string.Empty)
             {
-                superParent = getRoot();
+                superParent = GetRoot();
                 return superParent;
             }
             else
             {
-                superParent = getDirectoryContents(superParentPath);
+                superParent = GetDirectoryContents(superParentPath);
                 return superParent;
             }
         }
 
-        public void createDirectory(string name, string path)
+        public void CreateDirectory(string name, string path)
         {
-            DirectoryTable parentDirectory = getDirectoryContents(path);
-            parentDirectory.InsertRow(new DirectoryRow(name, findFirstFreeBlockPair(), 0, 0));
+            var parentDirectory = GetDirectoryContents(path);
+            parentDirectory.InsertRow(new DirectoryRow(name, FindFirstFreeBlockPair(), 0, 0));
             var splitPath = path.Split('/');
-            var superParent = getParentPath(path);
-            for (int i = 0; i < superParent.Rows.Count; i++)
+            var superParent = GetParentPath(path);
+            foreach (var t in superParent.Rows)
             {
-                if (superParent.Rows[i].getString() == splitPath[splitPath.Length - 1])
-                {
-                    var bytes = parentDirectory.toBytes();
-                    Disk.WriteBlock(superParent.Rows[i].blockStart, bytes.Take(bytes.Length/2).ToArray());
-                    Disk.WriteBlock(superParent.Rows[i].blockStart, bytes.Skip(bytes.Length/2).ToArray());
-                    return;
-                }
+                if (t.GetString() != splitPath[splitPath.Length - 1]) continue;
+                var bytes = parentDirectory.ToBytes();
+                _disk.WriteBlock(t.BlockStart, bytes.Take(bytes.Length/2).ToArray());
+                _disk.WriteBlock(t.BlockStart, bytes.Skip(bytes.Length/2).ToArray());
+                return;
             }
             throw new Exception("Something is horribly wrong with the file system.");
         }
 
-        public ushort findFirstFreeBlock()
+        public ushort FindFirstFreeBlock()
         {
-            bool[] free = getFreeBlocks();
+            var free = GetFreeBlocks();
             for (ushort i = 0; i < free.Length; i++)
             {
                 if (free[i])
@@ -161,11 +156,11 @@ namespace FileManager
             }
             throw new Exception("Virtual disk is full.");
         }
-        
-        public ushort findFirstFreeBlockPair()
+
+        private ushort FindFirstFreeBlockPair()
         {
-            bool[] free = getFreeBlocks();
-            bool lastFree = false;
+            var free = GetFreeBlocks();
+            var lastFree = false;
             for (ushort i = 0; i < free.Length; i++)
             {
                 if (free[i])
@@ -187,29 +182,29 @@ namespace FileManager
             throw new Exception("Virtual disk is full.");
         }
 
-        public bool[] getFreeBlocks()
+        private bool[] GetFreeBlocks()
         {
-            bool[] free = new bool[ushort.MaxValue];
+            var free = new bool[ushort.MaxValue];
             for (ushort i = 0; i < ushort.MaxValue; i++)
             {
                 free[i] = true;
             }
-            Stack<DirectoryTable> toProcessStack = new Stack<DirectoryTable>();
-            toProcessStack.Push(getRoot());
+            var toProcessStack = new Stack<DirectoryTable>();
+            toProcessStack.Push(GetRoot());
             while (toProcessStack.Count > 0)
             {
                 var current = toProcessStack.Pop();
-                foreach (DirectoryRow row in current.Rows)
+                foreach (var row in current.Rows)
                 {
-                    if (row.isFile)
+                    if (row.IsFile)
                     {
-                        free[row.blockStart] = false;
+                        free[row.BlockStart] = false;
                     }
                     else
                     {
-                        free[row.blockStart] = false;
-                        free[row.blockStart + 1] = false;
-                        toProcessStack.Push(parseTableAtBlock(row.blockStart));
+                        free[row.BlockStart] = false;
+                        free[row.BlockStart + 1] = false;
+                        toProcessStack.Push(ParseTableAtBlock(row.BlockStart));
                     }
                 }
             }
@@ -217,7 +212,7 @@ namespace FileManager
         }
 
         /* Doesn't actually create the File object, just finds the free memory in the virtual disk and inserts it there */
-        public void createFile(string path, File file)
+        public void CreateFile(string path, File file)
         {
           //  DirectoryTable table_to_update = getDirectoryContents(path);
           //  DirectoryRow row_to_insert = new DirectoryRow(file.filename)
@@ -225,12 +220,12 @@ namespace FileManager
             return;
         }
 
-        public DirectoryTable parseTableAtBlock(ushort block)
+        private DirectoryTable ParseTableAtBlock(ushort block)
         {
-            var read1 = Disk.ReadBlock(block);
-            var read2 = Disk.ReadBlock((ushort) (block + 1));
+            var read1 = _disk.ReadBlock(block);
+            var read2 = _disk.ReadBlock((ushort) (block + 1));
            
-            return DirectoryTable.createFromBytes(read1.Concat(read2).ToArray());
+            return DirectoryTable.CreateFromBytes(read1.Concat(read2).ToArray());
         }
     }
 }

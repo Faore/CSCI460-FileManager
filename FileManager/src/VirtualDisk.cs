@@ -4,11 +4,11 @@ namespace FileManager
 {
     public class VirtualDisk
     {
-        private byte[] diskContents;
+        private readonly byte[] _diskContents;
 
         public VirtualDisk()
         {
-            this.diskContents = new byte[ushort.MaxValue];
+            this._diskContents = new byte[ushort.MaxValue];
         }
 
         public byte[] ReadBlock(ushort block)
@@ -17,7 +17,7 @@ namespace FileManager
 
             for (ushort i = 0; i < 1024; i++)
             {
-                data[i] = this.diskContents[block * 1024 + i];
+                data[i] = this._diskContents[block * 1024 + i];
             }
             
             return data;
@@ -31,7 +31,7 @@ namespace FileManager
             }
             for (ushort i = 0; i < 1024; i++)
             {
-                this.diskContents[block * 1024 + i] = data[i];
+                this._diskContents[block * 1024 + i] = data[i];
             }
         }
     }
