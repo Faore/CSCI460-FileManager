@@ -108,6 +108,44 @@ namespace FileManager
             
         }
 
+        public ushort findFirstFreeBlock()
+        {
+            bool[] free = getFreeBlocks();
+            for (ushort i = 0; i < free.Length; i++)
+            {
+                if (free[i])
+                {
+                    return i;
+                }
+            }
+            throw new Exception("Virtual disk is full.");
+        }
+        
+        public ushort findFirstFreeBlockPair()
+        {
+            bool[] free = getFreeBlocks();
+            bool lastFree = false;
+            for (ushort i = 0; i < free.Length; i++)
+            {
+                if (free[i])
+                {
+                    if (lastFree)
+                    {
+                        return (ushort) (i - 1);
+                    }
+                    else
+                    {
+                        lastFree = true;
+                    }
+                }
+                else
+                {
+                    lastFree = false;
+                }
+        }
+            throw new Exception("Virtual disk is full.");
+        }
+
         public bool[] getFreeBlocks()
         {
             bool[] free = new bool[ushort.MaxValue];
