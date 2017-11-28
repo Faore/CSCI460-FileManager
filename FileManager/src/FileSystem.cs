@@ -184,7 +184,12 @@ namespace FileManager
             throw new Exception("Something is horribly wrong with the file system.");
         }
 
-        public Tuple<ushort, ushort> FindContiguousFreeBlocks(ushort n, bool[] freeBlocks)
+        private Tuple<ushort, ushort> FindContiguousFreeBlocks(ushort n)
+        {
+            return FindContiguousFreeBlocks(n, GetFreeBlocks());
+        }
+
+        private Tuple<ushort, ushort> FindContiguousFreeBlocks(ushort n, bool[] freeBlocks)
         {
             var nFree = new bool[n];
             for (ushort i = 0; i < (ushort) freeBlocks.Length; i++)
@@ -206,8 +211,13 @@ namespace FileManager
             }
             return null;
         }
+        
+        private Tuple<ushort, ushort>[] FindNonContiguousFreeBlocks(ushort n)
+        {
+            return FindNonContiguousFreeBlocks(n, GetFreeBlocks());
+        }
 
-        public Tuple<ushort, ushort>[] FindNonContiguousFreeBlocks(ushort n, bool[] freeBlocks)
+        private Tuple<ushort, ushort>[] FindNonContiguousFreeBlocks(ushort n, bool[] freeBlocks)
         {
             var list = new List<Tuple<ushort, ushort>>();
             var neededBlocks = n;
@@ -230,7 +240,7 @@ namespace FileManager
                 if (!found)
                 {
                     //Theres not enough disk space for the required number of blocks.
-                    return null;
+                    throw new Exception("Virtual disk is full.");
                 }
             }
             return list.ToArray();
@@ -251,27 +261,12 @@ namespace FileManager
 
         private Tuple<ushort, ushort> FindFirstFreeBlockPair()
         {
-            var free = GetFreeBlocks();
-            var lastFree = false;
-            for (ushort i = 0; i < free.Length; i++)
+            var blocks = FindContiguousFreeBlocks(2, GetFreeBlocks());
+            if (blocks == null)
             {
-                if (free[i])
-                {
-                    if (lastFree)
-                    {
-                        return new Tuple<ushort, ushort>((ushort) (i - 1), i);
-                    }
-                    else
-                    {
-                        lastFree = true;
-                    }
-                }
-                else
-                {
-                    lastFree = false;
-                }
+                throw new Exception("Virtual disk is full.");                
             }
-            throw new Exception("Virtual disk is full.");
+            return blocks;
         }
 
         private bool[] GetFreeBlocks()
