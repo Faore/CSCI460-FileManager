@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 
@@ -48,6 +50,34 @@ namespace FileManager
             }
         }
 
+        public string convertToAbsolutePath(string path)
+        {
+            string trimmed = path.TrimEnd('/');
+            string preppedPath = "";
+            List<string> fullPath = new List<string>();
+            if (!trimmed.StartsWith("/"))
+            {
+                //This is not an absolute path
+                //Lets prepend the current path
+                fullPath.AddRange(CurrentPath.Split().Skip(1));
+            }
+            string[] splitPath = trimmed.Split('/');
+            foreach (string item in splitPath)
+            {
+                if (item == "..")
+                {
+                    fullPath.RemoveAt(fullPath.Count - 1);
+                    continue;
+                }
+                if (item == ".")
+                {
+                    continue;
+                }
+                fullPath.Add(item);
+            }
+            return "/" + string.Join("/", fullPath.ToArray());
+        }
+
         public bool CommandLS(string[] args)
         {
             if (args.Length == 1)
@@ -58,7 +88,7 @@ namespace FileManager
             }
             else
             {
-                
+                Console.WriteLine(parseDirectory(FileSystem.getDirectoryContents(convertToAbsolutePath(args[1]))));
             }
             return true;
         }
