@@ -184,7 +184,12 @@ namespace FileManager
             throw new Exception("Something is horribly wrong with the file system.");
         }
 
-        public Tuple<ushort, ushort> FindContiguousFreeBlocks(ushort n, bool[] freeBlocks)
+        private Tuple<ushort, ushort> FindContiguousFreeBlocks(ushort n)
+        {
+            return FindContiguousFreeBlocks(n, GetFreeBlocks());
+        }
+
+        private Tuple<ushort, ushort> FindContiguousFreeBlocks(ushort n, bool[] freeBlocks)
         {
             var nFree = new bool[n];
             for (ushort i = 0; i < (ushort) freeBlocks.Length; i++)
@@ -198,13 +203,7 @@ namespace FileManager
                 {
                     nFree[0] = false;
                 }
-                var solution = true;
-                foreach (var b in nFree)
-                {
-                    if (b) continue;
-                    solution = false;
-                    break;
-                }
+                var solution = nFree.All(b => b);
                 if (solution)
                 {
                     return new Tuple<ushort, ushort>((ushort) (i - n), i);
@@ -212,10 +211,39 @@ namespace FileManager
             }
             return null;
         }
-
-        public Tuple<ushort, ushort>[] FindNonContiguousFreeBlocks(ushort n)
+        
+        private Tuple<ushort, ushort>[] FindNonContiguousFreeBlocks(ushort n)
         {
-            
+            return FindNonContiguousFreeBlocks(n, GetFreeBlocks());
+        }
+
+        private Tuple<ushort, ushort>[] FindNonContiguousFreeBlocks(ushort n, bool[] freeBlocks)
+        {
+            var list = new List<Tuple<ushort, ushort>>();
+            var neededBlocks = n;
+            while (neededBlocks > 0)
+            {
+                var found = false;
+                for (int i = neededBlocks; i > 0; i--)
+                {
+                    var blocks = FindContiguousFreeBlocks(neededBlocks, freeBlocks);
+                    if (blocks == null) continue;
+                    neededBlocks -= (ushort) i;
+                    list.Add(blocks);
+                    for (int j = blocks.Item1; j <= blocks.Item2; j++)
+                    {
+                        freeBlocks[j] = false;
+                    }
+                    found = true;
+                    break;
+                }
+                if (!found)
+                {
+                    //Theres not enough disk space for the required number of blocks.
+                    throw new Exception("Virtual disk is full.");
+                }
+            }
+            return list.ToArray();
         }
 
         public ushort FindFirstFreeBlock()
@@ -233,27 +261,12 @@ namespace FileManager
 
         private Tuple<ushort, ushort> FindFirstFreeBlockPair()
         {
-            var free = GetFreeBlocks();
-            var lastFree = false;
-            for (ushort i = 0; i < free.Length; i++)
+            var blocks = FindContiguousFreeBlocks(2, GetFreeBlocks());
+            if (blocks == null)
             {
-                if (free[i])
-                {
-                    if (lastFree)
-                    {
-                        return new Tuple<ushort, ushort>((ushort) (i - 1), i);
-                    }
-                    else
-                    {
-                        lastFree = true;
-                    }
-                }
-                else
-                {
-                    lastFree = false;
-                }
+                throw new Exception("Virtual disk is full.");                
             }
-            throw new Exception("Virtual disk is full.");
+            return blocks;
         }
 
         private bool[] GetFreeBlocks()
