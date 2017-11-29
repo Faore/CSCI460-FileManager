@@ -409,9 +409,46 @@ namespace FileManager
         /* Doesn't actually create the File object, just finds the free memory in the virtual disk and inserts it there */
         public void CreateFile(string path, File file)
         {
-            //  DirectoryTable table_to_update = getDirectoryContents(path);
-            //  DirectoryRow row_to_insert = new DirectoryRow(file.filename)
-            //  table_to_update.
+            /* Variables important to CreateFile */
+            DirectoryTable table_to_update = GetDirectoryContents(path);                /* - the current table we want to insert the row into.*/
+            Tuple[] blocks_to_write = FindNonContiguousFreeBlocks(file.RequiredBlocks); /* - the array of tuples of blocks we want to write to */
+
+            /* find the free blocks corresponding to path */
+            int i;
+            int current_filedata_location = 0;
+            for (i = 0; i < blocks_to_write.Length; i++) { /* iterate over every tuple, which gives the noncontiguous blocks to write to */
+                /* write to the blocks between (including) Item1 and Item2 */
+                int j;
+                for (j = blocks_to_write[i].Item1; j <= blocks_to_write[i].Item2; j++) { /* starting at tuple.left, and going to (including) tuple.right: */
+                    byte[] buffer = new byte[1024];
+                    int k;
+                    for (k = 0; k < 1024; k++) { /* keep filling the buffer with filedata until you reach 1024 bytes */
+                        if (current_filedata_location < file.FileData.Length) {
+                            buffer[k] = file.FileData[current_filedata_location];
+                            current_filedata_location++;
+                        } else { /* FileData doesn't fill up it's last remaining block, trying to index into it --> out of bounds exception */
+                            break;
+                        }
+                    }
+
+                    /* figure out which block the file data will continue at noncontiguously */
+                    ushort next;
+                    if (j >= blocks_to_write[i].Item2) {
+                        next = blocks_to_write[i + 1].Item1;
+                    } else {
+                        next = j + 1;
+                    }
+
+                    /* Insert row into table */
+                    DirectoryRow row_to_add = new DirectoryRow(file.Filename, blocks_to_write[i].Item1, (ushort) (k + 1), next);
+                    table_to_update.InsertRow(row_to_add);
+
+                    /* Write buffer to the current block j */
+                    _disk.WriteBlock((ushort) j, buffer);
+                    table_to_update.InsertRow(row_to_add);
+                }
+            }
+
             return;
         }
 

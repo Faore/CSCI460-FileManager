@@ -24,6 +24,7 @@ namespace FileManager
             _commands.Add("help", new Tuple<string, Delegate>("Displays this help message.", new Func<string[], bool>(CommandHelp)));
             _commands.Add("del", new Tuple<string, Delegate>("Deletes the file or directory given in the path.", new Func<string[], bool>(CommandDel)));
             _commands.Add("ren", new Tuple<string, Delegate>("Renames the file or directory given in the path with the new name.", new Func<string[], bool>(CommandRen)));
+            _commands.Add("cat", new Tuple<string, Delegate>("Display the contents of a file", new Func<string[], bool>(CommandCat)));
         }
 
         public void StartConsole()
@@ -143,6 +144,23 @@ namespace FileManager
                 Console.WriteLine(ParseDirectory(_fileSystem.GetDirectoryContents(ConvertToAbsolutePath(args[1]))));
             }
             return true;
+        }
+
+        private bool CommandCat(string[] args)
+        {
+            if (args.Length == 1)
+            {
+                return true;
+            }
+            string path = ConvertToAbsolutePath(args[1]);
+            File f = _fileSystem.GetFile(path);
+            byte[] data = f.FileData;
+            Console.WriteLine($"Displaying file {f.Filename}");
+            for (int i = 0; i < data.Length; i++)
+            {
+                Console.Write($"{(char)data[i]}");
+            }
+            return false;
         }
 
         private bool CommandExit(string[] args)

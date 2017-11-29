@@ -19,7 +19,7 @@ namespace FileManager
                 )
             );
 
-            public DirectoryRow(string n, ushort b, ushort s, ushort x)
+            public DirectoryRow(string n, ushort b, ushort s, ushort x) // name, block start, size, next
             {
                 if(n.Length >58)
                 {
