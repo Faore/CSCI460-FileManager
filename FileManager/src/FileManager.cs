@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
@@ -25,6 +26,8 @@ namespace FileManager
             _commands.Add("del", new Tuple<string, Delegate>("Deletes the file or directory given in the path.", new Func<string[], bool>(CommandDel)));
             _commands.Add("ren", new Tuple<string, Delegate>("Renames the file or directory given in the path with the new name.", new Func<string[], bool>(CommandRen)));
             _commands.Add("cat", new Tuple<string, Delegate>("Display the contents of a file", new Func<string[], bool>(CommandCat)));
+            _commands.Add("mkdir", new Tuple<string, Delegate>("Creates a new folder at current path", new Func<string[], bool>(CommandMkdir)));
+            
         }
 
         public void StartConsole()
@@ -160,6 +163,25 @@ namespace FileManager
             {
                 Console.Write($"{(char)data[i]}");
             }
+            return false;
+        }
+
+        private bool CommandMkdir(string[] args)
+        {
+            if (args.Length == 1)
+            {
+                return true;
+            }
+            string path = ConvertToAbsolutePath(args[1]);
+            string[] n = path.Split('/');
+            string name = n[n.Length - 1];
+            path = "";
+            for (int i = 0; i < n.Length - 1; i++)
+            {
+                path += "/";
+                path += n[i];
+            }
+            _fileSystem.CreateDirectory(path, name);
             return false;
         }
 
