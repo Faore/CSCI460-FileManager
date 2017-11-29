@@ -471,7 +471,6 @@ namespace FileManager
 
                     /* Write buffer to the current block j */
                     _disk.WriteBlock((ushort) j, buffer);
-                    table_to_update.InsertRow(row_to_add);
                 }
             }
 

@@ -106,7 +106,14 @@ namespace FileManager
                 Console.WriteLine("Path to be deleted not included.");
                 return true;
             }
-            _fileSystem.DeleteObject(ConvertToAbsolutePath(args[1]));
+            try
+            {
+                _fileSystem.DeleteObject(ConvertToAbsolutePath(args[1]));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
             return true;
         }
 
@@ -117,7 +124,14 @@ namespace FileManager
                 Console.WriteLine("Path or new name not included.");
                 return true;
             }
-            _fileSystem.RenameObject(ConvertToAbsolutePath(args[1]), args[2]);
+            try
+            {
+                _fileSystem.RenameObject(ConvertToAbsolutePath(args[1]), args[2]);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
             return true;
         }
 
@@ -127,11 +141,15 @@ namespace FileManager
             {
                 return true;
             }
-            else
+            try
             {
                 var path = ConvertToAbsolutePath(args[1]);
                 _fileSystem.GetDirectoryContents(path);
                 _currentPath = path;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
             }
             return true;
         }
@@ -144,9 +162,13 @@ namespace FileManager
                 Console.WriteLine(ParseDirectory(_fileSystem.GetDirectoryContents(_currentPath)));
                 return true;
             }
-            else
+            try
             {
                 Console.WriteLine(ParseDirectory(_fileSystem.GetDirectoryContents(ConvertToAbsolutePath(args[1]))));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
             }
             return true;
         }
@@ -158,13 +180,20 @@ namespace FileManager
                 Console.WriteLine("Input invalid");
                 return true;
             }
-            string path = ConvertToAbsolutePath(args[1]);
-            File f = _fileSystem.GetFile(path);
-            byte[] data = f.FileData;
-            Console.WriteLine($"Displaying file {f.Filename}");
-            for (int i = 0; i < data.Length; i++)
+            try
             {
-                Console.Write($"{(char)data[i]}");
+                string path = ConvertToAbsolutePath(args[1]);
+                File f = _fileSystem.GetFile(path);
+                byte[] data = f.FileData;
+                Console.WriteLine($"Displaying file {f.Filename}");
+                for (int i = 0; i < data.Length; i++)
+                {
+                    Console.Write($"{(char) data[i]}");
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
             }
             return true;
         }
