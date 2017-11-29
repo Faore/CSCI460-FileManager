@@ -233,7 +233,7 @@ namespace FileManager
                 var solution = nFree.All(b => b);
                 if (solution)
                 {
-                    return new Tuple<ushort, ushort>((ushort) (i - n), i);
+                    return new Tuple<ushort, ushort>((ushort) (i - (n-1)), i);
                 }
             }
             return null;
@@ -377,7 +377,7 @@ namespace FileManager
         private bool[] GetFreeBlocks()
         {
             var free = new bool[ushort.MaxValue];
-            for (ushort i = 0; i < ushort.MaxValue; i++)
+            for (ushort i = 2; i < ushort.MaxValue; i++)
             {
                 free[i] = true;
             }
@@ -411,7 +411,7 @@ namespace FileManager
         {
             /* Variables important to CreateFile */
             DirectoryTable table_to_update = GetDirectoryContents(path);                /* - the current table we want to insert the row into.*/
-            Tuple[] blocks_to_write = FindNonContiguousFreeBlocks(file.RequiredBlocks); /* - the array of tuples of blocks we want to write to */
+            Tuple<ushort, ushort>[] blocks_to_write = FindNonContiguousFreeBlocks(file.RequiredBlocks); /* - the array of tuples of blocks we want to write to */
 
             /* find the free blocks corresponding to path */
             int i;
@@ -436,7 +436,7 @@ namespace FileManager
                     if (j >= blocks_to_write[i].Item2) {
                         next = blocks_to_write[i + 1].Item1;
                     } else {
-                        next = j + 1;
+                        next = (ushort) (j + 1);
                     }
 
                     /* Insert row into table */

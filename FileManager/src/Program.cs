@@ -32,10 +32,8 @@ namespace FileManager
             
             vd.WriteBlock(4, table.ToBytes().Take(table.ToBytes().Length/2).ToArray());
             vd.WriteBlock(5, table.ToBytes().Skip(table.ToBytes().Length/2).ToArray());
-
-            //fs.getDirectoryContents("/folder1/folder2");
-            //fs.getDirectoryContents("/folder1");
-            //fs.getDirectoryContents("/");
+            
+            fs.CreateFile("/folder1", new File("derp", "content"));
             
             var fileManager = new FileManager(fs);
             fileManager.StartConsole();
