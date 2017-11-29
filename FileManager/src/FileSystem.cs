@@ -119,8 +119,15 @@ namespace FileManager
                 }
                 x = GetDirectoryContents(path);
             }
-            
+
             var tableEntries = new List<DirectoryRow>();
+            foreach (var entry in x.Rows)
+            {
+                if (entry.GetString() == filename)
+                {
+                    tableEntries.Add(entry);
+                }
+            }
             tableEntries = SortTableEntries(tableEntries);
             // Build the file.
             var blockSeperatedContents = new List<byte[]>();
@@ -345,7 +352,7 @@ namespace FileManager
             
             if (rewriteBlock == ushort.MaxValue)
             {
-                throw new Exception("Could not find directory block to delete. Something is horribly wrong with the file system.");
+                throw new Exception("This file does not exist.");
             }
             _disk.WriteBlock(rewriteBlock, parent.ToBytes().Take(parent.ToBytes().Length/2).ToArray());
             _disk.WriteBlock((ushort) (rewriteBlock + 1), parent.ToBytes().Skip(parent.ToBytes().Length/2).ToArray());
@@ -383,7 +390,7 @@ namespace FileManager
             
             if (rewriteBlock == ushort.MaxValue)
             {
-                throw new Exception("Could not find directory block to delete. Something is horribly wrong with the file system.");
+                throw new Exception("This file does not exist.");
             }
             _disk.WriteBlock(rewriteBlock, parent.ToBytes().Take(parent.ToBytes().Length/2).ToArray());
             _disk.WriteBlock((ushort) (rewriteBlock + 1), parent.ToBytes().Skip(parent.ToBytes().Length/2).ToArray());
@@ -477,12 +484,20 @@ namespace FileManager
             var parent = GetParentFromPath(path);
             var directoryName = path.Split('/')[path.Split('/').Length - 1];
             var rewriteBlock = ushort.MaxValue;
-            foreach (var entry in parent.Rows)
+            if (parent == null)
             {
-                if (entry.GetString() != directoryName) continue;
-                rewriteBlock = entry.BlockStart;
-                break;
+                rewriteBlock = 0;
             }
+            else
+            {
+                foreach (var entry in parent.Rows)
+                {
+                    if (entry.GetString() != directoryName) continue;
+                    rewriteBlock = entry.BlockStart;
+                    break;
+                }                
+            }
+            
             if (rewriteBlock == ushort.MaxValue)
             {
                 throw new Exception("Failed to find block to rewrite for directory. Cannot create file. Something is horribly wrong with the file system.");

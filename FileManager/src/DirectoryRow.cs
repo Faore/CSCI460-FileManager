@@ -13,11 +13,15 @@ namespace FileManager
 
             public bool IsFile => Size != 0;
 
-            public ushort ReferencedBlockCount => Convert.ToUInt16(
-                Math.Ceiling(
-                    (double) (Size / 1024)
-                )
-            );
+            public ushort ReferencedBlockCount
+            {
+                get
+                {
+                    double m1 = (double) this.Size / (double) 1024;
+                    ushort m2 = (ushort) Math.Ceiling(m1);
+                    return m2;
+                }
+            }
 
             public DirectoryRow(string n, ushort b, ushort s, ushort x) // name, block start, size, next
             {

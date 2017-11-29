@@ -27,6 +27,7 @@ namespace FileManager
             _commands.Add("ren", new Tuple<string, Delegate>("Renames the file or directory given in the path with the new name.", new Func<string[], bool>(CommandRen)));
             _commands.Add("cat", new Tuple<string, Delegate>("Display the contents of a file", new Func<string[], bool>(CommandCat)));
             _commands.Add("mkdir", new Tuple<string, Delegate>("Creates a new folder at current path", new Func<string[], bool>(CommandMkdir)));
+            _commands.Add("mkfile", new Tuple<string, Delegate>("Creates a new file at current path", new Func<string[], bool>(CommandMkfile)));
             
         }
 
@@ -190,11 +191,37 @@ namespace FileManager
                 {
                     Console.Write($"{(char) data[i]}");
                 }
+                Console.WriteLine();
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
             }
+            return true;
+        }
+
+        public bool CommandMkfile(string[] args)
+        {
+            if (args.Length != 3)
+            {
+                Console.WriteLine("Wrong arguments.");
+                return true;
+            }
+            string path = ConvertToAbsolutePath(args[1]);
+            string[] n = path.Split('/');
+            string name = n[n.Length - 1];
+            path = "";
+            for (int i = 0; i < n.Length - 1; i++)
+            {
+                path += "/";
+                path += n[i];
+            }
+            if (path == "")
+            {
+                path = "/";
+            }
+            var file = new File(name, args[2]);
+            _fileSystem.CreateFile(path, file);
             return true;
         }
 
