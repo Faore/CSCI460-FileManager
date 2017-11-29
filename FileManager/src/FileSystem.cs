@@ -175,6 +175,10 @@ namespace FileManager
 
         private DirectoryTable GetParentFromPath(string path)
         {
+            if (path == "/")
+            {
+                return null;
+            }
             var splitPath = path.Split('/');
             var superParentPath = "";
             DirectoryTable superParent;
@@ -201,19 +205,35 @@ namespace FileManager
             var freeBlocks = FindFirstFreeBlockPair();
             parentDirectory.InsertRow(new DirectoryRow(name, freeBlocks.Item1, 0, 0));
             var splitPath = path.Split('/');
-            var superParent = GetParentFromPath(path);
+            var superParent = GetSuperParentFromPath(path);
             var targetDirectory = new DirectoryTable();
             _disk.WriteBlock(freeBlocks.Item1, targetDirectory.ToBytes().Take(targetDirectory.ToBytes().Length/2).ToArray());
-            _disk.WriteBlock(freeBlocks.Item1, targetDirectory.ToBytes().Skip(targetDirectory.ToBytes().Length/2).ToArray());
-            foreach (var t in superParent.Rows)
+            _disk.WriteBlock(freeBlocks.Item2, targetDirectory.ToBytes().Skip(targetDirectory.ToBytes().Length/2).ToArray());
+
+            var rewriteBlock = ushort.MaxValue;
+            if (superParent == null)
             {
-                if (t.GetString() != splitPath[splitPath.Length - 1]) continue;
-                var bytes = parentDirectory.ToBytes();
-                _disk.WriteBlock(t.BlockStart, bytes.Take(bytes.Length/2).ToArray());
-                _disk.WriteBlock(t.BlockStart, bytes.Skip(bytes.Length/2).ToArray());
-                return;
+                rewriteBlock = 0;
             }
-            throw new Exception("Something is horribly wrong with the file system.");
+            else
+            {
+                foreach (var t in superParent.Rows)
+                {
+                    if (t.GetString() != splitPath[splitPath.Length - 1]) continue;
+                    rewriteBlock = t.BlockStart;
+                    break;
+
+                }
+            }
+            
+            if (rewriteBlock == ushort.MaxValue)
+            {
+                throw new Exception("Something is horribly wrong with the file system.");                
+            }
+            var bytes = parentDirectory.ToBytes();
+            _disk.WriteBlock(rewriteBlock, bytes.Take(bytes.Length/2).ToArray());
+            _disk.WriteBlock((ushort) (rewriteBlock + 1), bytes.Skip(bytes.Length/2).ToArray());
+            return;
         }
 
         private Tuple<ushort, ushort> FindContiguousFreeBlocks(ushort n)
@@ -226,7 +246,7 @@ namespace FileManager
             var nFree = new bool[n];
             for (ushort i = 0; i < (ushort) freeBlocks.Length; i++)
             {
-                Array.Copy(nFree, 1, nFree, 0, nFree.Length - 1);
+                Array.Copy(nFree, 0, nFree, 1, nFree.Length - 1);
                 if (freeBlocks[i])
                 {
                     nFree[0] = true;

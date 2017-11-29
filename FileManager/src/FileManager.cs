@@ -185,7 +185,11 @@ namespace FileManager
                 path += "/";
                 path += n[i];
             }
-            _fileSystem.CreateDirectory(path, name);
+            if (path == "")
+            {
+                path = "/";
+            }
+            _fileSystem.CreateDirectory(name, path);
             return true;
         }
 
@@ -194,10 +198,31 @@ namespace FileManager
             Console.WriteLine("Goodbye.");
             return false;
         }
+        
 
         private static string ParseDirectory(DirectoryTable table)
         {
-            return table.Rows.Aggregate("", (current, row) => current + $"{row.GetString()}\n");
+            string output = "";
+            List<string> seen = new List<string>();
+            foreach (var row in table.Rows)
+            {
+                bool inc = false;
+                foreach (var s in seen)
+                {
+                    
+                    if (s == row.GetString())
+                    {
+                        inc = true;
+                        break;
+                    }
+                }
+                if (!inc)
+                {
+                    seen.Add(row.GetString());
+                    output += $"{row.GetString()}\n";
+                }
+            }
+            return output;
         }
 
         //I didn't feel like parsing out arguments to commands myself on the command line. So I used some black magic.
