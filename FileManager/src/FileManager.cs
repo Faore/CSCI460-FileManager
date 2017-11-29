@@ -22,6 +22,7 @@ namespace FileManager
             _commands.Add("exit", new Tuple<string, Delegate>("Exits the application.", new Func<string[], bool>(CommandExit)));
             _commands.Add("cd", new Tuple<string, Delegate>("Changes the directory to the given path.", new Func<string[], bool>(CommandCd)));
             _commands.Add("help", new Tuple<string, Delegate>("Displays this help message.", new Func<string[], bool>(CommandHelp)));
+            _commands.Add("cat", new Tuple<string, Delegate>("Display the contents of a file", new Func<string[], bool>(CommandCat)));
         }
 
         public void StartConsole()
@@ -118,6 +119,23 @@ namespace FileManager
                 Console.WriteLine(ParseDirectory(_fileSystem.GetDirectoryContents(ConvertToAbsolutePath(args[1]))));
             }
             return true;
+        }
+
+        private bool CommandCat(string[] args)
+        {
+            if (args.Length == 1)
+            {
+                return true;
+            }
+            string path = ConvertToAbsolutePath(args[1]);
+            File f = _fileSystem.GetFile(path);
+            byte[] data = f.FileData;
+            Console.WriteLine($"Displaying file {f.Filename}");
+            for (int i = 0; i < data.Length; i++)
+            {
+                Console.Write($"{(char)data[i]}");
+            }
+            return false;
         }
 
         private bool CommandExit(string[] args)
