@@ -114,7 +114,7 @@ namespace FileManager
         {
             if (args.Length != 3)
             {
-                Console.WriteLine("Path to be renamed not included.");
+                Console.WriteLine("Path or new name not included.");
                 return true;
             }
             _fileSystem.RenameObject(ConvertToAbsolutePath(args[1]), args[2]);
