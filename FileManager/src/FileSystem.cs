@@ -305,8 +305,8 @@ namespace FileManager
         public void CreateFile(string path, File file)
         {
             /* Variables important to CreateFile */
-            DirectoryTable table_to_update = GetDirectoryContents(path);                                                /* - the current table we want to insert the row into.*/
-            Tuple[] blocks_to_write = FindNonContiguousFreeBlocks(file.RequiredBlocks);                                 /* - the array of tuples of blocks we want to write to */
+            DirectoryTable table_to_update = GetDirectoryContents(path);                /* - the current table we want to insert the row into.*/
+            Tuple[] blocks_to_write = FindNonContiguousFreeBlocks(file.RequiredBlocks); /* - the array of tuples of blocks we want to write to */
 
             /* find the free blocks corresponding to path */
             int i;
