@@ -6,7 +6,7 @@ namespace FileManager
 {
     public class DirectoryTable
     {
-        public readonly List<DirectoryRow> Rows;
+        public List<DirectoryRow> Rows;
 
         public DirectoryTable()
         {
@@ -18,7 +18,7 @@ namespace FileManager
             return Rows[i];
         }
     
-        public void InsertRow(DirectoryRow row)
+        public void InsertRow(DirectoryRow row)//creates new directory row in this table
         {
             if (Rows.Count == 32)
             {
@@ -27,12 +27,12 @@ namespace FileManager
             Rows.Add(row);
         }
 
-        public void DeleteRow(DirectoryRow row)
+        public void DeleteRow(DirectoryRow row)//deletes a row form this table
         {
             Rows.Remove(row);
         }
         
-        public static DirectoryTable CreateFromBytes(byte[] data)//return type will be DirectoryTable
+        public static DirectoryTable CreateFromBytes(byte[] data)//creates new directory table
         {
             var table = new DirectoryTable();
             for (var i = 0; i < 32; i++)
@@ -52,7 +52,7 @@ namespace FileManager
             return table;
         }
 
-        public byte[] ToBytes()
+        public byte[] ToBytes()//returns contents of a table as an array of bytes
         {
             var bytes = new byte[2048];
             for (var i = 0; i < Rows.Count; i++)

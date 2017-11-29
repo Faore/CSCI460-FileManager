@@ -82,6 +82,17 @@ namespace FileManager
                 return row;
             }
 
+            public void SetString(string n)
+            {
+                var n2 = n.ToCharArray();
+                var n3 = new char[58];
+                for (var i = 0; i <n2.Length; i++)//creates char array from input string n, padded with nulls to be length 58
+                {
+                    n3[i] = n2[i];
+                }
+                Name = n3;
+            }
+
             public string GetString()
             {
                 //Return the string without any null characters.

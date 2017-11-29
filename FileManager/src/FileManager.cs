@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
@@ -22,7 +23,11 @@ namespace FileManager
             _commands.Add("exit", new Tuple<string, Delegate>("Exits the application.", new Func<string[], bool>(CommandExit)));
             _commands.Add("cd", new Tuple<string, Delegate>("Changes the directory to the given path.", new Func<string[], bool>(CommandCd)));
             _commands.Add("help", new Tuple<string, Delegate>("Displays this help message.", new Func<string[], bool>(CommandHelp)));
+            _commands.Add("del", new Tuple<string, Delegate>("Deletes the file or directory given in the path.", new Func<string[], bool>(CommandDel)));
+            _commands.Add("ren", new Tuple<string, Delegate>("Renames the file or directory given in the path with the new name.", new Func<string[], bool>(CommandRen)));
             _commands.Add("cat", new Tuple<string, Delegate>("Display the contents of a file", new Func<string[], bool>(CommandCat)));
+            _commands.Add("mkdir", new Tuple<string, Delegate>("Creates a new folder at current path", new Func<string[], bool>(CommandMkdir)));
+            
         }
 
         public void StartConsole()
@@ -58,11 +63,14 @@ namespace FileManager
             var trimmed = path.TrimEnd('/');
             var preppedPath = "";
             var fullPath = new List<string>();
-            if (!trimmed.StartsWith("/"))
+            if (!trimmed.StartsWith("/") && _currentPath != "/")
             {
                 //This is not an absolute path
                 //Lets prepend the current path
-                fullPath.AddRange(_currentPath.Split().Skip(1));
+                if (_currentPath.Split('/').Length > 1)
+                {
+                    fullPath.AddRange(_currentPath.Split('/').Skip(1));
+                }
             }
             var splitPath = trimmed.Split('/');
             foreach (var item in splitPath)
@@ -91,6 +99,28 @@ namespace FileManager
             return true;
         }
 
+        private bool CommandDel(string[] args)
+        {
+            if (args.Length != 2)
+            {
+                Console.WriteLine("Path to be deleted not included.");
+                return true;
+            }
+            _fileSystem.DeleteObject(ConvertToAbsolutePath(args[1]));
+            return true;
+        }
+
+        private bool CommandRen(string[] args)
+        {
+            if (args.Length != 3)
+            {
+                Console.WriteLine("Path to be renamed not included.");
+                return true;
+            }
+            _fileSystem.RenameObject(ConvertToAbsolutePath(args[1]), args[2]);
+            return true;
+        }
+
         private bool CommandCd(string[] args)
         {
             if (args.Length == 1)
@@ -101,7 +131,7 @@ namespace FileManager
             {
                 var path = ConvertToAbsolutePath(args[1]);
                 _fileSystem.GetDirectoryContents(path);
-                _currentPath = ConvertToAbsolutePath(path);
+                _currentPath = path;
             }
             return true;
         }
@@ -123,8 +153,9 @@ namespace FileManager
 
         private bool CommandCat(string[] args)
         {
-            if (args.Length == 1)
+            if (args.Length != 2)
             {
+                Console.WriteLine("Input invalid");
                 return true;
             }
             string path = ConvertToAbsolutePath(args[1]);
@@ -135,7 +166,27 @@ namespace FileManager
             {
                 Console.Write($"{(char)data[i]}");
             }
-            return false;
+            return true;
+        }
+
+        private bool CommandMkdir(string[] args)
+        {
+            if (args.Length !=2)
+            {
+                Console.WriteLine("Input invalid");
+                return true;
+            }
+            string path = ConvertToAbsolutePath(args[1]);
+            string[] n = path.Split('/');
+            string name = n[n.Length - 1];
+            path = "";
+            for (int i = 0; i < n.Length - 1; i++)
+            {
+                path += "/";
+                path += n[i];
+            }
+            _fileSystem.CreateDirectory(path, name);
+            return true;
         }
 
         private bool CommandExit(string[] args)
@@ -146,12 +197,7 @@ namespace FileManager
 
         private static string ParseDirectory(DirectoryTable table)
         {
-            var output = "";
-            foreach (var row in table.Rows)
-            {
-                output += $"{row.GetString()}\n";
-            }
-            return output;
+            return table.Rows.Aggregate("", (current, row) => current + $"{row.GetString()}\n");
         }
 
         //I didn't feel like parsing out arguments to commands myself on the command line. So I used some black magic.
