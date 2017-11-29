@@ -104,6 +104,7 @@ namespace FileManager
             if (args.Length != 2)
             {
                 Console.WriteLine("Path to be deleted not included.");
+                return true;
             }
             _fileSystem.DeleteObject(ConvertToAbsolutePath(args[1]));
             return true;
@@ -113,7 +114,8 @@ namespace FileManager
         {
             if (args.Length != 3)
             {
-                Console.WriteLine("Path to be deleted not included.");
+                Console.WriteLine("Path to be renamed not included.");
+                return true;
             }
             _fileSystem.RenameObject(ConvertToAbsolutePath(args[1]), args[2]);
             return true;
@@ -151,8 +153,9 @@ namespace FileManager
 
         private bool CommandCat(string[] args)
         {
-            if (args.Length == 1)
+            if (args.Length != 2)
             {
+                Console.WriteLine("Input invalid");
                 return true;
             }
             string path = ConvertToAbsolutePath(args[1]);
@@ -163,13 +166,14 @@ namespace FileManager
             {
                 Console.Write($"{(char)data[i]}");
             }
-            return false;
+            return true;
         }
 
         private bool CommandMkdir(string[] args)
         {
-            if (args.Length == 1)
+            if (args.Length !=2)
             {
+                Console.WriteLine("Input invalid");
                 return true;
             }
             string path = ConvertToAbsolutePath(args[1]);
@@ -182,7 +186,7 @@ namespace FileManager
                 path += n[i];
             }
             _fileSystem.CreateDirectory(path, name);
-            return false;
+            return true;
         }
 
         private bool CommandExit(string[] args)
