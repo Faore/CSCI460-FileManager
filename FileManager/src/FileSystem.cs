@@ -455,7 +455,21 @@ namespace FileManager
                 }
             }
 
-            return;
+            var parent = GetParentFromPath(path);
+            var directoryName = path.Split('/')[path.Split('/').Length - 1];
+            var rewriteBlock = ushort.MaxValue;
+            foreach (var entry in parent.Rows)
+            {
+                if (entry.GetString() != directoryName) continue;
+                rewriteBlock = entry.BlockStart;
+                break;
+            }
+            if (rewriteBlock == ushort.MaxValue)
+            {
+                throw new Exception("Failed to find block to rewrite for directory. Cannot create file. Something is horribly wrong with the file system.");
+            }
+            _disk.WriteBlock(rewriteBlock, table_to_update.ToBytes().Take(table_to_update.ToBytes().Length/2).ToArray());
+            _disk.WriteBlock((ushort) (rewriteBlock + 1), table_to_update.ToBytes().Skip(table_to_update.ToBytes().Length/2).ToArray());
         }
 
         private DirectoryTable ParseTableAtBlock(ushort block)
