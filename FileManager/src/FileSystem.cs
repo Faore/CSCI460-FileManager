@@ -44,6 +44,10 @@ namespace FileManager
                 {
                     if ((current.Rows[j]).GetString() == p1[i]) /*  */
                     {
+                        if (current.Rows[j].IsFile)
+                        {
+                            throw new Exception("This is a file, not a directory.");
+                        }
                         current = ParseTableAtBlock(current.Rows[j].BlockStart);
                     }
                 }
@@ -129,6 +133,17 @@ namespace FileManager
                 }
             }
             tableEntries = SortTableEntries(tableEntries);
+            if (tableEntries.Count == 0)
+            {
+                throw new Exception("This file does not exist.");
+            }
+            if (tableEntries.Count == 1)
+            {
+                if (!tableEntries[0].IsFile)
+                {
+                    throw new Exception("This is a directory.");
+                }
+            }
             // Build the file.
             var blockSeperatedContents = new List<byte[]>();
             foreach (var entry in tableEntries)

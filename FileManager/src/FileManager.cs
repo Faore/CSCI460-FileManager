@@ -211,7 +211,7 @@ namespace FileManager
             string[] n = path.Split('/');
             string name = n[n.Length - 1];
             path = "";
-            for (int i = 0; i < n.Length - 1; i++)
+            for (int i = 1; i < n.Length - 1; i++)
             {
                 path += "/";
                 path += n[i];
