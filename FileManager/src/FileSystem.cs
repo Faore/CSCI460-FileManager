@@ -437,9 +437,11 @@ namespace FileManager
 
                     /* figure out which block the file data will continue at noncontiguously */
                     ushort next;
-                    if (blocks_to_write.Length > 1 && j >= blocks_to_write[i].Item2) {
+                    if (j >= blocks_to_write[i].Item2 && blocks_to_write.Length > (i + 1)) { /* If we are at the last block in b/w the tuples, the continuing fragment is at the next tuple */
                         next = blocks_to_write[i + 1].Item1;
-                    } else {
+                    } else if (blocks_to_write.Length == 1){ /* If there was only 1 fragment/block/tuple, there is no next */
+                        next = 0;
+                    } else { /* the next block is within the tuple */
                         next = (ushort) (j + 1);
                     }
 
