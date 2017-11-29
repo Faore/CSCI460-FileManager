@@ -18,17 +18,22 @@ namespace FileManager
             _disk = disk;
         }
 
+        /* The first entry in our virtual disk is the root (/) dir */
         private DirectoryTable GetRoot()
         {
             return ParseTableAtBlock(0);
         }
 
+        /* Returns the corresponding DirectoryTable object when given the absolute path to the directory */
         public DirectoryTable GetDirectoryContents(string path)
         {
+            /* Check to see if they're asking for the root dir */
             if (path == "/")
             {
                 return GetRoot();
             }
+
+            /* Otherwise go through each directory in the path, starting at root */
             var p1 = path.Split('/');
             var current = GetRoot();
             var last = current;
@@ -36,7 +41,7 @@ namespace FileManager
             {
                 for (var j = 0; j < current.Rows.Count; j++)
                 {
-                    if ((current.Rows[j]).GetString() == p1[i])
+                    if ((current.Rows[j]).GetString() == p1[i]) /*  */
                     {
                         current = ParseTableAtBlock(current.Rows[j].BlockStart);
                     }
@@ -63,7 +68,7 @@ namespace FileManager
             foreach (var entry in entries)
             {
                 if (entry.Next != 0) continue;
-                //This is the last entry (without a next);
+                /* This is the last entry (without a next); */
                 sortedEntries.Add(entry);
                 entries.Remove(entry);
                 lookForNext = entry.BlockStart;
@@ -308,9 +313,8 @@ namespace FileManager
             DirectoryTable table_to_update = GetDirectoryContents(path);                /* - the current table we want to insert the row into.*/
             Tuple[] blocks_to_write = FindNonContiguousFreeBlocks(file.RequiredBlocks); /* - the array of tuples of blocks we want to write to */
 
-            /* find the free blocks corresponding to path */
             int i;
-            int current_filedata_location = 0;
+            int current_filedata_location = 0; /*  */
             for (i = 0; i < blocks_to_write.Length; i++) { /* iterate over every tuple, which gives the noncontiguous blocks to write to */
                 /* write to the blocks between (including) Item1 and Item2 */
                 int j;
@@ -328,7 +332,7 @@ namespace FileManager
 
                     /* figure out which block the file data will continue at noncontiguously */
                     ushort next;
-                    if (j >= blocks_to_write[i].Item2) {
+                    if (blocks_to_write.Length > 1 && j >= blocks_to_write[i].Item2) {
                         next = blocks_to_write[i + 1].Item1;
                     } else {
                         next = j + 1;
