@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Runtime.Remoting.Messaging;
 using System.Security.Cryptography;
 
@@ -141,7 +142,33 @@ namespace FileManager
             return outputFile;
         }
 
-        private DirectoryTable GetParentPath(string path)
+        private DirectoryTable GetSuperParentFromPath(string path)
+        {
+            var splitPath = path.Split('/');
+            var superParentPath = "";
+            DirectoryTable superParent;
+            if (splitPath.Length == 2)
+            {
+                return null;
+            }
+            for (var k = 1; k < splitPath.Length - 2; k++)
+            {
+                superParentPath += "/";
+                superParentPath += splitPath[k];
+            }
+            if (superParentPath == string.Empty)
+            {
+                superParent = GetRoot();
+                return superParent;
+            }
+            else
+            {
+                superParent = GetDirectoryContents(superParentPath);
+                return superParent;
+            }
+        }
+
+        private DirectoryTable GetParentFromPath(string path)
         {
             var splitPath = path.Split('/');
             var superParentPath = "";
@@ -169,7 +196,7 @@ namespace FileManager
             var freeBlocks = FindFirstFreeBlockPair();
             parentDirectory.InsertRow(new DirectoryRow(name, freeBlocks.Item1, 0, 0));
             var splitPath = path.Split('/');
-            var superParent = GetParentPath(path);
+            var superParent = GetParentFromPath(path);
             var targetDirectory = new DirectoryTable();
             _disk.WriteBlock(freeBlocks.Item1, targetDirectory.ToBytes().Take(targetDirectory.ToBytes().Length/2).ToArray());
             _disk.WriteBlock(freeBlocks.Item1, targetDirectory.ToBytes().Skip(targetDirectory.ToBytes().Length/2).ToArray());
@@ -216,6 +243,8 @@ namespace FileManager
         {
             return FindNonContiguousFreeBlocks(n, GetFreeBlocks());
         }
+        
+        
 
         private Tuple<ushort, ushort>[] FindNonContiguousFreeBlocks(ushort n, bool[] freeBlocks)
         {
@@ -257,6 +286,82 @@ namespace FileManager
                 }
             }
             throw new Exception("Virtual disk is full.");
+        }
+
+        public void DeleteObject(string filePath)
+        {
+            var parent = GetParentFromPath(filePath);
+            var superParent = GetSuperParentFromPath(filePath);
+            var rewriteBlock = ushort.MaxValue;
+            var parentName = filePath.Split('/')[filePath.Split('/').Length - 2];
+            var oldName = filePath.Split('/')[filePath.Split('/').Length - 1];
+            var newTableRows = new List<DirectoryRow>();
+            foreach (var entry in parent.Rows)
+            {
+                if (entry.GetString() != oldName)
+                {
+                    newTableRows.Add(entry);
+                }
+            }
+            parent.Rows = newTableRows;
+            if (superParent == null)
+            {
+                rewriteBlock = 0;
+            }
+            else
+            {
+                foreach (var row in superParent.Rows)
+                {
+                    if (row.GetString() != parentName) continue;
+                    rewriteBlock = row.BlockStart;
+                    break;
+                }
+            }
+            
+            if (rewriteBlock == ushort.MaxValue)
+            {
+                throw new Exception("Could not find directory block to delete. Something is horribly wrong with the file system.");
+            }
+            _disk.WriteBlock(rewriteBlock, parent.ToBytes().Take(parent.ToBytes().Length/2).ToArray());
+            _disk.WriteBlock((ushort) (rewriteBlock + 1), parent.ToBytes().Skip(parent.ToBytes().Length/2).ToArray());
+        }
+
+        public void RenameObject(string filePath, string newName)
+        {
+            var parent = GetParentFromPath(filePath);
+            var superParent = GetSuperParentFromPath(filePath);
+            var rewriteBlock = ushort.MaxValue;
+            var parentName = filePath.Split('/')[filePath.Split('/').Length - 2];
+            
+            
+            var oldName = filePath.Split('/')[filePath.Split('/').Length - 1];
+            foreach (var entry in parent.Rows)
+            {
+                if (entry.GetString() == oldName)
+                {
+                    entry.SetString(newName);
+                }
+            }
+            if (superParent == null)
+            {
+                rewriteBlock = 0;
+            }
+            else
+            {
+                foreach (var row in superParent.Rows)
+                {
+                    if (row.GetString() != parentName) continue;
+                    rewriteBlock = row.BlockStart;
+                    break;
+                }
+            }
+            
+            if (rewriteBlock == ushort.MaxValue)
+            {
+                throw new Exception("Could not find directory block to delete. Something is horribly wrong with the file system.");
+            }
+            _disk.WriteBlock(rewriteBlock, parent.ToBytes().Take(parent.ToBytes().Length/2).ToArray());
+            _disk.WriteBlock((ushort) (rewriteBlock + 1), parent.ToBytes().Skip(parent.ToBytes().Length/2).ToArray());
         }
 
         private Tuple<ushort, ushort> FindFirstFreeBlockPair()

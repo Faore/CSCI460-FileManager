@@ -6,7 +6,7 @@ namespace FileManager
 {
     public class DirectoryTable
     {
-        public readonly List<DirectoryRow> Rows;
+        public List<DirectoryRow> Rows;
 
         public DirectoryTable()
         {
